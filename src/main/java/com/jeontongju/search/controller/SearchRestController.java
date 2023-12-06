@@ -1,13 +1,10 @@
 package com.jeontongju.search.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequestMapping("/api")
 @RestController
-@RequestMapping("/")
-public class TestController {
-    @RequestMapping("test")
-    public String test(){
-        return "hello, csh";
-    }
-}
+@RequiredArgsConstructor
+public class SearchRestController {}
