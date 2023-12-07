@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "wishCartServiceClient", url = "https://e62e9111-4ca7-4984-93da-a6b562b71a83.mock.pstmn.io")
+@FeignClient(name = "wish-cart-service")
 public interface WishCartServiceClient {
 
   @PostMapping("/products/likes")
