@@ -55,6 +55,8 @@ public class Product {
 
   private Long sellerId;
 
+  private Long shortId;
+
   private Taste taste;
 
   private List<String> rawMaterial;
