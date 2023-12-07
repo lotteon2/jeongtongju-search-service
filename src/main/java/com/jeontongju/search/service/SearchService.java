@@ -6,6 +6,7 @@ import com.jeontongju.search.document.Product;
 import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.request.IsWishProductDto;
 import com.jeontongju.search.dto.response.GetMyProductDto;
+import com.jeontongju.search.dto.response.GetSellerOneProductDto;
 import com.jeontongju.search.dto.response.IsWishInfoDto;
 import com.jeontongju.search.dto.response.ProductDetailsDto;
 import com.jeontongju.search.exception.ProductNotFoundException;
@@ -43,13 +44,11 @@ public class SearchService {
 
   public ProductDetailsDto getProductDetails(String productId, Long memberId) {
 
-    // Bool Query 생성
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
     boolQuery.must(new TermQueryBuilder("productId", productId));
     boolQuery.filter(new TermQueryBuilder("isActivate", true));
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
 
-    // SearchSourceBuilder 설정
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(boolQuery);
 
@@ -81,9 +80,12 @@ public class SearchService {
     sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
     sourceBuilder.size(pageable.getPageSize());
 
-    sourceBuilder.sort(
-        SortBuilders.fieldSort(pageable.getSort().stream().findFirst().get().getProperty())
-            .order(SortOrder.fromString(pageable.getSort().stream().findFirst().get().getDirection().name())));
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
 
     SearchResponse searchResponse = search(sourceBuilder);
     SearchHits hits = searchResponse.getHits();
@@ -99,12 +101,40 @@ public class SearchService {
     return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getMyProductDtoList);
   }
 
+  public PageResponseFormat<List<GetSellerOneProductDto>> getSellerOneProduct(
+      Long sellerId, Pageable pageable) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.size(pageable.getPageSize());
+
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+    SearchHits hits = searchResponse.getHits();
+
+    List<GetSellerOneProductDto> getSellerOneProductList =
+        Arrays.stream(hits.getHits())
+            .map(
+                hit ->
+                    GetSellerOneProductDto.toDto(
+                        objectMapper.convertValue(hit.getSourceAsMap(), Product.class)))
+            .collect(Collectors.toList());
+
+    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getSellerOneProductList);
+  }
+
   /** document get */
   public GetResponse getDocument(GetRequest request) {
 
     try {
-      RestHighLevelClient highLevelClient = client;
-      GetResponse response = highLevelClient.get(request, RequestOptions.DEFAULT);
+      GetResponse response = client.get(request, RequestOptions.DEFAULT);
 
       if (!response.isExists()) {
         throw new ProductNotFoundException();
@@ -119,14 +149,10 @@ public class SearchService {
   public SearchResponse search(SearchSourceBuilder searchSourceBuilder) {
 
     try {
-      // SearchRequest 설정
       SearchRequest searchRequest = new SearchRequest(PRODUCT_INDEX);
       searchRequest.source(searchSourceBuilder);
 
-      // Search 실행
-      SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
-      return response;
-
+      return client.search(searchRequest, RequestOptions.DEFAULT);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

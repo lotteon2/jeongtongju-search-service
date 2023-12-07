@@ -2,12 +2,14 @@ package com.jeontongju.search.controller;
 
 import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.GetMyProductDto;
+import com.jeontongju.search.dto.response.GetSellerOneProductDto;
 import com.jeontongju.search.dto.response.ProductDetailsDto;
 import com.jeontongju.search.dto.temp.ResponseFormat;
 import com.jeontongju.search.enums.temp.MemberRoleEnum;
 import com.jeontongju.search.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,4 +56,22 @@ public class SearchRestController {
                             .data(searchService.getMyProduct(memberId, pageable))
                             .build());
   }
+  @GetMapping("/admin/sellers/{sellerId}/products")
+  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetSellerOneProductDto>>>> getSellerOneProduct(
+          @PathVariable Long sellerId,
+          @RequestHeader Long memberId,
+          @RequestHeader MemberRoleEnum memberRole,
+          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+  ) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<PageResponseFormat<List<GetSellerOneProductDto>>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("셀러 상품 목록 조회 성공")
+                            .data(searchService.getSellerOneProduct(sellerId, pageable))
+                            .build());
+  }
+
 }
