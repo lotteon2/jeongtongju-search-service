@@ -20,7 +20,7 @@ public class PageResponseFormat<T> {
 
     public static <T> PageResponseFormat<T> toDto(Long totalHits, Pageable pageable, T contents) {
 
-        Long totalPage = (long) Math.ceil(totalHits / pageable.getPageSize());
+        Long totalPage = (long) Math.ceil((double) totalHits / pageable.getPageSize());
 
         return PageResponseFormat.<T>builder()
                 .contents(contents)

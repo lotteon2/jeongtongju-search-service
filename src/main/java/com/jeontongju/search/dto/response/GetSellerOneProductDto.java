@@ -1,8 +1,6 @@
 package com.jeontongju.search.dto.response;
 
 import com.jeontongju.search.document.Product;
-import com.jeontongju.search.document.Taste;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,13 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GetMyProductDto {
+public class GetSellerOneProductDto {
 
   private String productId;
 
   private String productName;
-
-  private String productThumbnailImageUrl;
 
   private Long totalSalesCount;
 
@@ -30,34 +26,17 @@ public class GetMyProductDto {
 
   private Long shortsId;
 
-  private String productDetailsImageUrl;
-
-  private Taste taste;
-
-  private List<String> concept;
-
-  private List<String> rawMaterial;
-
-  private List<String> food;
-
   private Boolean isActivate;
 
-  public static GetMyProductDto toDto(Product product) {
-
-    return GetMyProductDto.builder()
+  public static GetSellerOneProductDto toDto(Product product) {
+    return GetSellerOneProductDto.builder()
         .productId(product.getProductId())
         .productName(product.getName())
-        .productThumbnailImageUrl(product.getProductThumbnailImageUrl())
         .totalSalesCount(product.getTotalSalesCount())
         .productPrice(product.getPrice())
         .stockQuantity(product.getStockQuantity())
         .reviewCount(product.getReviewCount())
         .shortsId(product.getShortsId())
-        .productDetailsImageUrl(product.getProductDetailsImageUrl())
-        .taste(product.getTaste())
-        .concept(product.getConcept())
-        .rawMaterial(product.getRawMaterial())
-        .food(product.getFood())
         .isActivate(product.getIsActivate())
         .build();
   }
