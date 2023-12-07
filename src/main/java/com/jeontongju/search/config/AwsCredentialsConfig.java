@@ -36,9 +36,8 @@ public class AwsCredentialsConfig {
   @Bean(name = "customCredentialsProvider")
   public CredentialsProvider customCredentialsProvider() {
     final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
-    basicCredentialsProvider.setCredentials(AuthScope.ANY,
-            new UsernamePasswordCredentials(accessKey, secretKey));
+    basicCredentialsProvider.setCredentials(
+        AuthScope.ANY, new UsernamePasswordCredentials(accessKey, secretKey));
     return basicCredentialsProvider;
   }
-
 }

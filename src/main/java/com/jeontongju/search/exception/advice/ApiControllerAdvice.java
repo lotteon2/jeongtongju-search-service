@@ -5,6 +5,9 @@ import com.jeontongju.search.exception.common.DomainException;
 import com.jeontongju.search.exception.common.InvalidPermissionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.opensearch.OpenSearchException;
+import org.opensearch.ResourceNotFoundException;
+import org.opensearch.rest.RestStatus;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +26,7 @@ public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
 
   private static final String UNIQUE_CONSTRAINT_EXCEPTION_MESSAGE = "유니크 제약조건 오류 ";
   private static final String DUPLICATE_KEY_EXCEPTION_MESSAGE = "중복 키 오류 ";
+  private static final String RESOURCE_NOT_FOUND__MESSAGE = "존재하지 않는 인덱스 조회 오류 ";
 
   @ExceptionHandler(DomainException.class)
   public ResponseEntity<ResponseFormat<Void>> handleDomainException(DomainException e) {
@@ -51,6 +55,21 @@ public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
             .build();
 
     return ResponseEntity.status(status.value()).body(body);
+  }
+
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<ResponseFormat<Void>> handleResourceNotFoundException(OpenSearchException e) {
+    log.error("{PRODUCT}", e.getMessage());
+    RestStatus status = e.status();
+
+    ResponseFormat<Void> body =
+        ResponseFormat.<Void>builder()
+            .code(status.getStatus())
+            .message(status.name())
+            .detail(RESOURCE_NOT_FOUND__MESSAGE)
+            .build();
+
+    return ResponseEntity.status(status.getStatus()).body(body);
   }
 
   @ExceptionHandler(DuplicateKeyException.class)
