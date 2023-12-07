@@ -55,7 +55,7 @@ public class Product {
 
   private Long sellerId;
 
-  private Long shortId;
+  private Long shortsId;
 
   private Taste taste;
 
