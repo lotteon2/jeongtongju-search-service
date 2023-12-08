@@ -1,5 +1,6 @@
 package com.jeontongju.search.controller;
 
+import com.jeontongju.search.dto.response.GetProductSellerShopDto;
 import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.GetMyProductDto;
 import com.jeontongju.search.dto.response.GetSellerOneProductDto;
@@ -71,6 +72,42 @@ public class SearchRestController {
                             .message(HttpStatus.OK.name())
                             .detail("셀러 상품 목록 조회 성공")
                             .data(searchService.getSellerOneProduct(sellerId, pageable))
+                            .build());
+  }
+
+  @GetMapping("/sellers/{sellerId}/products/all")
+  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductSellerShopDto>>>> getAllProductAtSellerShop(
+          @PathVariable Long sellerId,
+          @RequestHeader(required = false) Long memberId,
+          @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+  ) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<PageResponseFormat<List<GetProductSellerShopDto>>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("셀러 샵의 상품 목록 성공")
+                            .data(searchService.getAllProductSellerShop(sellerId, pageable, memberId))
+                            .build());
+  }
+
+  @GetMapping("/sellers/{sellerId}/products")
+  public ResponseEntity<ResponseFormat<List<GetProductSellerShopDto>>> getProductAtSellerShop(
+          @PathVariable Long sellerId,
+          @RequestHeader(required = false) Long memberId,
+          @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @PageableDefault(page = 0, sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 5) Pageable pageable
+  ) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<List<GetProductSellerShopDto>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("셀러 샵의 상품 목록 성공")
+                            .data(searchService.getProductSellerShop(sellerId, pageable, memberId))
                             .build());
   }
 
