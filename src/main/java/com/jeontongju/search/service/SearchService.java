@@ -126,7 +126,7 @@ public class SearchService {
     return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getSellerOneProductList);
   }
 
-  public List<GetProductSellerShopDto> getProductSellerShop(
+  public List<GetProductDto> getProductSellerShop(
       Long sellerId, Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -149,7 +149,7 @@ public class SearchService {
     return getProductListByIsWish(consumerId, searchResponse);
   }
 
-  public PageResponseFormat<List<GetProductSellerShopDto>> getAllProductSellerShop(
+  public PageResponseFormat<List<GetProductDto>> getAllProductSellerShop(
       Long sellerId, Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -170,16 +170,42 @@ public class SearchService {
 
     SearchResponse searchResponse = search(sourceBuilder);
     SearchHits hits = searchResponse.getHits();
-    List<GetProductSellerShopDto> getProductSellerShopDtoList =
+    List<GetProductDto> getProductSellerShopDtoList =
         getProductListByIsWish(consumerId, searchResponse);
 
     return PageResponseFormat.toDto(
         hits.getTotalHits().value, pageable, getProductSellerShopDtoList);
   }
 
+  public PageResponseFormat<List<GetProductDto>> getProductByCategory(
+      Long categoryId, Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+    boolQuery.must(new TermQueryBuilder("categoryId", categoryId));
+    boolQuery.filter(new TermQueryBuilder("isActivate", true));
+    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    SearchHits hits = searchResponse.getHits();
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+
+    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getProductDtoList);
+  }
 
   /** 상품 목록 조회 일때, 찜 유무 */
-  public List<GetProductSellerShopDto> getProductListByIsWish(
+  public List<GetProductDto> getProductListByIsWish(
       Long consumerId, SearchResponse searchResponse) {
 
     if (consumerId != null) {
@@ -196,22 +222,20 @@ public class SearchService {
       HashMap<String, Boolean> isWishInfoDto = isWishProductClient(consumerId, productIds);
 
       return productList.stream()
-          .map(
-              product ->
-                  GetProductSellerShopDto.toDto(product, isWishInfoDto.get(product.getProductId())))
+          .map(product -> GetProductDto.toDto(product, isWishInfoDto.get(product.getProductId())))
           .collect(Collectors.toList());
 
     } else {
       return Arrays.stream(searchResponse.getHits().getHits())
           .map(
               hit ->
-                  GetProductSellerShopDto.toDto(
+                  GetProductDto.toDto(
                       objectMapper.convertValue(hit.getSourceAsMap(), Product.class), false))
           .collect(Collectors.toList());
     }
   }
 
- /** isWish feign client */
+  /** isWish feign client */
   public HashMap<String, Boolean> isWishProductClient(Long consumerId, List<String> productIds) {
     return wishCartServiceClient
         .getIsWish(IsWishProductDto.builder().consumerId(consumerId).productIds(productIds).build())
