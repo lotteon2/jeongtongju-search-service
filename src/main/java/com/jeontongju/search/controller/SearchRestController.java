@@ -1,6 +1,6 @@
 package com.jeontongju.search.controller;
 
-import com.jeontongju.search.dto.response.GetProductSellerShopDto;
+import com.jeontongju.search.dto.response.GetProductDto;
 import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.GetMyProductDto;
 import com.jeontongju.search.dto.response.GetSellerOneProductDto;
@@ -76,7 +76,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/sellers/{sellerId}/products/all")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductSellerShopDto>>>> getAllProductAtSellerShop(
+  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>> getAllProductAtSellerShop(
           @PathVariable Long sellerId,
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
@@ -85,7 +85,7 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
             .body(
-                    ResponseFormat.<PageResponseFormat<List<GetProductSellerShopDto>>>builder()
+                    ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
                             .code(HttpStatus.OK.value())
                             .message(HttpStatus.OK.name())
                             .detail("셀러 샵의 상품 목록 성공")
@@ -94,7 +94,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/sellers/{sellerId}/products")
-  public ResponseEntity<ResponseFormat<List<GetProductSellerShopDto>>> getProductAtSellerShop(
+  public ResponseEntity<ResponseFormat<List<GetProductDto>>> getProductAtSellerShop(
           @PathVariable Long sellerId,
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
@@ -103,11 +103,29 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
             .body(
-                    ResponseFormat.<List<GetProductSellerShopDto>>builder()
+                    ResponseFormat.<List<GetProductDto>>builder()
                             .code(HttpStatus.OK.value())
                             .message(HttpStatus.OK.name())
                             .detail("셀러 샵의 상품 목록 성공")
                             .data(searchService.getProductSellerShop(sellerId, pageable, memberId))
+                            .build());
+  }
+
+  @GetMapping("/products/categories")
+  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>> getProductByCategory(
+          @RequestHeader(required = false) Long memberId,
+          @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @RequestParam Long id,
+          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+  ) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("카테고리 별 상품 목록 성공")
+                            .data(searchService.getProductByCategory(id, pageable, memberId))
                             .build());
   }
 

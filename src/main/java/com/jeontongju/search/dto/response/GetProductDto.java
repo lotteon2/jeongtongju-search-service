@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GetProductSellerShopDto {
+public class GetProductDto {
 
   private String productId;
   private String productName;
@@ -21,8 +21,8 @@ public class GetProductSellerShopDto {
   private Boolean isLikes;
   private Boolean isSoldOut;
 
-  public static GetProductSellerShopDto toDto(Product product, Boolean isLikes) {
-    return GetProductSellerShopDto.builder()
+  public static GetProductDto toDto(Product product, Boolean isLikes) {
+    return GetProductDto.builder()
         .productId(product.getProductId())
         .productName(product.getName())
         .productDescription(product.getDescription())
