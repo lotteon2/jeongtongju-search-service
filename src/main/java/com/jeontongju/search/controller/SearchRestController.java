@@ -111,7 +111,7 @@ public class SearchRestController {
                             .build());
   }
 
-  @GetMapping("products/categories")
+  @GetMapping("/products/categories")
   public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>> getProductByCategory(
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
