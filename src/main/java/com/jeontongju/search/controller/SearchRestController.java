@@ -129,4 +129,24 @@ public class SearchRestController {
                             .build());
   }
 
+  @GetMapping("/products/search")
+  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>> getProductBySearch(
+          @RequestHeader(required = false) Long memberId,
+          @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @RequestParam String query,
+          @PageableDefault(page = 0, sort = "_score", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+  ) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("상품 검색 성공")
+                            .data(searchService.getProductBySearch(query, pageable, memberId))
+                            .build());
+  }
+
+
+
 }
