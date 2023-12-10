@@ -22,6 +22,7 @@ import org.opensearch.action.search.SearchResponse;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MultiMatchQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.TermQueryBuilder;
 import org.opensearch.search.SearchHits;
@@ -187,6 +188,39 @@ public class SearchService {
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
 
     sourceBuilder.query(boolQuery);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    SearchHits hits = searchResponse.getHits();
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+
+    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getProductDtoList);
+  }
+
+  public PageResponseFormat<List<GetProductDto>> getProductBySearch(
+      String query, Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+
+    MultiMatchQueryBuilder multiMatchQuery =
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text").field("name", 2);
+
+    boolQuery.must(multiMatchQuery);
+
+    boolQuery.filter(new TermQueryBuilder("isActivate", true));
+    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+
+    sourceBuilder.query(boolQuery);
+
     sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
