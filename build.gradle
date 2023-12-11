@@ -27,8 +27,8 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
-//	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-sleuth'
-//	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-zipkin', version: '2.2.8.RELEASE'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-sleuth'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-zipkin', version: '2.2.8.RELEASE'
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE' // spring aws
 	implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.12.353' // aws 제공 dynamodb sdk
@@ -40,7 +40,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 	//implementation group: 'io.github.lotteon2', name: 'bitbox', version: '1.0.0'
-	implementation 'mysql:mysql-connector-java:8.0.33'
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
