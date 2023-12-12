@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
 import com.jeontongju.search.dto.PageResponseFormat;
-import com.jeontongju.search.dto.request.IsWishProductDto;
+import com.jeontongju.search.dto.temp.IsWishProductDto;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.exception.ProductNotFoundException;
 import java.io.IOException;
