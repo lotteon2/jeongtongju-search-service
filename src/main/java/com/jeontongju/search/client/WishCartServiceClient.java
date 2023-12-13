@@ -1,7 +1,7 @@
 package com.jeontongju.search.client;
 
-import com.jeontongju.search.dto.temp.IsWishProductDto;
-import com.jeontongju.search.dto.temp.FeignFormat;
+import io.github.bitbox.bitbox.dto.FeignFormat;
+import io.github.bitbox.bitbox.dto.IsWishProductDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.HashMap;
 import org.springframework.cloud.openfeign.FeignClient;

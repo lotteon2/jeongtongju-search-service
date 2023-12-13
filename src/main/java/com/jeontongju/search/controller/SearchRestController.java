@@ -1,13 +1,14 @@
 package com.jeontongju.search.controller;
 
-import com.jeontongju.search.dto.response.GetProductDto;
 import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.GetMyProductDto;
+import com.jeontongju.search.dto.response.GetProductDto;
 import com.jeontongju.search.dto.response.GetSellerOneProductDto;
 import com.jeontongju.search.dto.response.ProductDetailsDto;
-import com.jeontongju.search.dto.temp.ResponseFormat;
-import com.jeontongju.search.enums.temp.MemberRoleEnum;
 import com.jeontongju.search.service.SearchService;
+import io.github.bitbox.bitbox.dto.ResponseFormat;
+import io.github.bitbox.bitbox.enums.MemberRoleEnum;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,8 +16,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequestMapping("/api")
 @RestController
@@ -146,7 +145,4 @@ public class SearchRestController {
                             .data(searchService.getProductBySearch(query, pageable, memberId))
                             .build());
   }
-
-
-
 }
