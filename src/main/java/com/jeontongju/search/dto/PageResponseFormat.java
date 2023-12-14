@@ -12,18 +12,18 @@ import org.springframework.data.domain.Pageable;
 @Builder
 public class PageResponseFormat<T> {
 
-    private T contents;
+    private T content;
     private Long totalPage;
     private Integer size;
     private Boolean first;
     private Boolean last;
 
-    public static <T> PageResponseFormat<T> toDto(Long totalHits, Pageable pageable, T contents) {
+    public static <T> PageResponseFormat<T> toDto(Long totalHits, Pageable pageable, T content) {
 
         Long totalPage = (long) Math.ceil((double) totalHits / pageable.getPageSize());
 
         return PageResponseFormat.<T>builder()
-                .contents(contents)
+                .content(content)
                 .first(pageable.getPageNumber() == 0)
                 .last(pageable.getPageNumber() == totalPage )
                 .totalPage(totalPage)

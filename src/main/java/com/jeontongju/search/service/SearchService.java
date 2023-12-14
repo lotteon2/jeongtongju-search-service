@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
 import com.jeontongju.search.dto.PageResponseFormat;
-import com.jeontongju.search.dto.request.IsWishProductDto;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.exception.ProductNotFoundException;
 import java.io.IOException;
@@ -13,6 +12,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import io.github.bitbox.bitbox.dto.IsWishProductDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.action.get.GetRequest;

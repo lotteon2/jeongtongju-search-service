@@ -1,8 +1,8 @@
 package com.jeontongju.search.exception.advice;
 
-import com.jeontongju.search.dto.temp.ResponseFormat;
 import com.jeontongju.search.exception.common.DomainException;
 import com.jeontongju.search.exception.common.InvalidPermissionException;
+import io.github.bitbox.bitbox.dto.ResponseFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.OpenSearchException;
