@@ -1,5 +1,7 @@
 package com.jeontongju.search.config;
 
+import java.io.IOException;
+import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.client.CredentialsProvider;
@@ -7,7 +9,6 @@ import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.RestHighLevelClient;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +17,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-public class OpenSearchConfig implements DisposableBean {
+public class OpenSearchConfig {
 
-  @Value("${opensearch.hostname}")
+  @Value("${open-search.hostname}")
   private String hostname;
 
   @Autowired
@@ -42,8 +43,8 @@ public class OpenSearchConfig implements DisposableBean {
     return new RestHighLevelClient(restClientBuilder);
   }
 
-  @Override
-  public void destroy() throws Exception {
+  @PreDestroy
+  public void destroy() throws IOException {
     client().close();
   }
 }
