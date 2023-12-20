@@ -23,6 +23,12 @@ public class AwsCredentialsConfig {
   @Value("${cloud.aws.credentials.secret-key}")
   private String secretKey;
 
+  @Value("${open-search.credentials.user-name}")
+  private String userName;
+
+  @Value("${open-search.credentials.password}")
+  private String password;
+
   @Bean
   public AWSCredentials amazonAWSCredentials() {
     return new BasicAWSCredentials(accessKey, secretKey);
@@ -37,7 +43,7 @@ public class AwsCredentialsConfig {
   public CredentialsProvider customCredentialsProvider() {
     final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
     basicCredentialsProvider.setCredentials(
-        AuthScope.ANY, new UsernamePasswordCredentials(accessKey, secretKey));
+        AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
     return basicCredentialsProvider;
   }
 }
