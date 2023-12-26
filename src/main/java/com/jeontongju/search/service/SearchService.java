@@ -72,7 +72,7 @@ public class SearchService {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
@@ -101,7 +101,7 @@ public class SearchService {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.from( pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
@@ -158,7 +158,7 @@ public class SearchService {
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
     sourceBuilder.query(boolQuery);
 
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
         .forEach(
@@ -186,7 +186,7 @@ public class SearchService {
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
 
     sourceBuilder.query(boolQuery);
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
         .forEach(
@@ -275,7 +275,7 @@ public class SearchService {
 
     sourceBuilder.query(boolQuery);
 
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize() + 1);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
         .forEach(
