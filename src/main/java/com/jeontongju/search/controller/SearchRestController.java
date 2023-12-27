@@ -7,6 +7,7 @@ import io.github.bitbox.bitbox.dto.ResponseFormat;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -38,14 +39,14 @@ public class SearchRestController {
   }
 
   @GetMapping("/sellers/products")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetMyProductDto>>>> getMyProduct(
+  public ResponseEntity<ResponseFormat<Page<GetMyProductDto>>> getMyProduct(
       @RequestHeader Long memberId,
       @RequestHeader MemberRoleEnum memberRole,
       @PageableDefault(page = 0, sort = "stockQuantity", size = 10) Pageable pageable) {
 
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<PageResponseFormat<List<GetMyProductDto>>>builder()
+            ResponseFormat.<Page<GetMyProductDto>>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("등록한 셀러 상품 목록 조회 성공")
@@ -54,7 +55,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/admin/sellers/{sellerId}/products")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetSellerOneProductDto>>>>
+  public ResponseEntity<ResponseFormat<Page<GetSellerOneProductDto>>>
       getSellerOneProduct(
           @PathVariable Long sellerId,
           @RequestHeader Long memberId,
@@ -64,7 +65,7 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<PageResponseFormat<List<GetSellerOneProductDto>>>builder()
+            ResponseFormat.<Page<GetSellerOneProductDto>>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("셀러 상품 목록 조회 성공")
@@ -73,7 +74,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/sellers/{sellerId}/products/all")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>>
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>>
       getAllProductAtSellerShop(
           @PathVariable Long sellerId,
           @RequestHeader(required = false) Long memberId,
@@ -83,7 +84,7 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
+            ResponseFormat.<Page<GetProductDto>>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("셀러 샵의 상품 목록 성공")
@@ -114,7 +115,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/products/categories")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>>
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>>
       getProductByCategory(
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
@@ -124,7 +125,7 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
+            ResponseFormat.<Page<GetProductDto>>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("카테고리 별 상품 목록 성공")
@@ -133,7 +134,7 @@ public class SearchRestController {
   }
 
   @GetMapping("/products/search")
-  public ResponseEntity<ResponseFormat<PageResponseFormat<List<GetProductDto>>>> getProductBySearch(
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getProductBySearch(
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
       @RequestParam String query,
@@ -142,7 +143,7 @@ public class SearchRestController {
 
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<PageResponseFormat<List<GetProductDto>>>builder()
+            ResponseFormat.<Page<GetProductDto>>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("상품 검색 성공")
@@ -183,4 +184,21 @@ public class SearchRestController {
                             .data(searchService.getProduct(pageable, memberId))
                             .build());
   }
+
+    @GetMapping("/products/all")
+    public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
+            @RequestHeader(required = false) Long memberId,
+            @RequestHeader(required = false) MemberRoleEnum memberRole,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
+            Pageable pageable) {
+
+        return ResponseEntity.ok()
+                .body(
+                        ResponseFormat.<Page<GetProductDto>>builder()
+                                .code(HttpStatus.OK.value())
+                                .message(HttpStatus.OK.name())
+                                .detail("모든 상품 조회 성공")
+                                .data(searchService.getAllProduct(pageable, memberId))
+                                .build());
+    }
 }

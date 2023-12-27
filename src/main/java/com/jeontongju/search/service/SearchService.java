@@ -27,6 +27,8 @@ import org.opensearch.search.SearchHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +70,7 @@ public class SearchService {
     return ProductDetailsDto.toDto(product, isLikes);
   }
 
-  public PageResponseFormat<List<GetMyProductDto>> getMyProduct(Long sellerId, Pageable pageable) {
+  public Page<GetMyProductDto> getMyProduct(Long sellerId, Pageable pageable) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
@@ -93,15 +95,15 @@ public class SearchService {
                         objectMapper.convertValue(hit.getSourceAsMap(), Product.class)))
             .collect(Collectors.toList());
 
-    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getMyProductDtoList);
-  }
+    return new PageImpl<GetMyProductDto>(
+            getMyProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);   }
 
-  public PageResponseFormat<List<GetSellerOneProductDto>> getSellerOneProduct(
+  public Page<GetSellerOneProductDto> getSellerOneProduct(
       Long sellerId, Pageable pageable) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
-    sourceBuilder.from( pageable.getPageNumber() * pageable.getPageSize());
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
@@ -122,7 +124,8 @@ public class SearchService {
                         objectMapper.convertValue(hit.getSourceAsMap(), Product.class)))
             .collect(Collectors.toList());
 
-    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getSellerOneProductList);
+    return new PageImpl<GetSellerOneProductDto>(
+            getSellerOneProductList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
   public List<GetProductDto> getProductSellerShop(
@@ -148,7 +151,7 @@ public class SearchService {
     return getProductListByIsWish(consumerId, searchResponse);
   }
 
-  public PageResponseFormat<List<GetProductDto>> getAllProductSellerShop(
+  public Page<GetProductDto> getAllProductSellerShop(
       Long sellerId, Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -168,15 +171,13 @@ public class SearchService {
                         .order(SortOrder.fromString(order.getDirection().name()))));
 
     SearchResponse searchResponse = search(sourceBuilder);
-    SearchHits hits = searchResponse.getHits();
-    List<GetProductDto> getProductSellerShopDtoList =
-        getProductListByIsWish(consumerId, searchResponse);
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
 
-    return PageResponseFormat.toDto(
-        hits.getTotalHits().value, pageable, getProductSellerShopDtoList);
+    return new PageImpl<GetProductDto>(
+        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public PageResponseFormat<List<GetProductDto>> getProductByCategory(
+  public Page<GetProductDto> getProductByCategory(
       Long categoryId, Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -196,14 +197,13 @@ public class SearchService {
                         .order(SortOrder.fromString(order.getDirection().name()))));
 
     SearchResponse searchResponse = search(sourceBuilder);
-
-    SearchHits hits = searchResponse.getHits();
     List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
 
-    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getProductDtoList);
+    return new PageImpl<GetProductDto>(
+        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public List<GetMainProductDto> getProduct(Pageable pageable, Long consumerId) {
+  public Page<GetProductDto> getAllProduct(Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
@@ -211,10 +211,10 @@ public class SearchService {
         QueryBuilders.boolQuery()
             .must(QueryBuilders.matchAllQuery())
             .filter(QueryBuilders.termQuery("isActivate", true))
-            .filter(QueryBuilders.termQuery("isDeleted", false))
-            .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+            .filter(QueryBuilders.termQuery("isDeleted", false));
 
     sourceBuilder.query(boolQuery);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
         .forEach(
@@ -223,16 +223,43 @@ public class SearchService {
                     SortBuilders.fieldSort(order.getProperty())
                         .order(SortOrder.fromString(order.getDirection().name()))));
 
-    return getMainProductListByIsWish(consumerId, search(sourceBuilder));
+    SearchResponse searchResponse = search(sourceBuilder);
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+
+    return new PageImpl<GetProductDto>(
+        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public GetCerealCropsProductDto getCerealCropsProduct(Pageable pageable, Long consumerId) {
-    return GetCerealCropsProductDto.builder()
-        .sweetPotato(
-            searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.SWEET_POTATO.getValue()))
-        .potato(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.POTATO.getValue()))
-        .corn(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.CORN.getValue()))
-        .build();
+  public Page<GetProductDto> getProductBySearch(String query, Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+
+    MultiMatchQueryBuilder multiMatchQuery =
+            QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text")
+                    .field("name", 2);
+
+    boolQuery.must(multiMatchQuery);
+
+    boolQuery.filter(new TermQueryBuilder("isActivate", true));
+    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+
+    sourceBuilder.query(boolQuery);
+
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+            .forEach(
+                    order ->
+                            sourceBuilder.sort(
+                                    SortBuilders.fieldSort(order.getProperty())
+                                            .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+
+    return new PageImpl<GetProductDto>(
+            getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
   public List<GetMainProductDto> searchCerealCropsProduct(
@@ -258,38 +285,36 @@ public class SearchService {
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
   }
 
-  public PageResponseFormat<List<GetProductDto>> getProductBySearch(
-      String query, Pageable pageable, Long consumerId) {
+  public GetCerealCropsProductDto getCerealCropsProduct(Pageable pageable, Long consumerId) {
+    return GetCerealCropsProductDto.builder()
+            .sweetPotato(
+                    searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.SWEET_POTATO.getValue()))
+            .potato(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.POTATO.getValue()))
+            .corn(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.CORN.getValue()))
+            .build();
+  }
+
+  public List<GetMainProductDto> getProduct(Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
-    MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text")
-            .field("name", 2);
-
-    boolQuery.must(multiMatchQuery);
-
-    boolQuery.filter(new TermQueryBuilder("isActivate", true));
-    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchAllQuery())
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false))
+                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
     sourceBuilder.query(boolQuery);
-
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
-        .forEach(
-            order ->
-                sourceBuilder.sort(
-                    SortBuilders.fieldSort(order.getProperty())
-                        .order(SortOrder.fromString(order.getDirection().name()))));
+            .forEach(
+                    order ->
+                            sourceBuilder.sort(
+                                    SortBuilders.fieldSort(order.getProperty())
+                                            .order(SortOrder.fromString(order.getDirection().name()))));
 
-    SearchResponse searchResponse = search(sourceBuilder);
-
-    SearchHits hits = searchResponse.getHits();
-    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
-
-    return PageResponseFormat.toDto(hits.getTotalHits().value, pageable, getProductDtoList);
+    return getMainProductListByIsWish(consumerId, search(sourceBuilder));
   }
 
   /** 메인 상품 목록 조회 일때, 찜 유무와 함께 */
