@@ -13,7 +13,8 @@ import org.springframework.data.domain.Pageable;
 public class PageResponseFormat<T> {
 
     private T content;
-    private Long totalPage;
+    private Long totalPages;
+    private Long totalElements;
     private Integer size;
     private Boolean first;
     private Boolean last;
@@ -26,7 +27,8 @@ public class PageResponseFormat<T> {
                 .content(content)
                 .first(pageable.getPageNumber() == 0)
                 .last(pageable.getPageNumber() == totalPage )
-                .totalPage(totalPage)
+                .totalElements(totalHits)
+                .totalPages(totalPage)
                 .size(pageable.getPageSize())
                 .build();
     }

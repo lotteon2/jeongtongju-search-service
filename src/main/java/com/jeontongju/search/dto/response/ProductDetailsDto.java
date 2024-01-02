@@ -48,6 +48,10 @@ public class ProductDetailsDto {
 
   private Long sellerId;
 
+  private String storeName;
+
+  private String storeImageUrl;
+
   private Taste taste;
 
   private List<String> rawMaterial;
@@ -80,6 +84,8 @@ public class ProductDetailsDto {
         .productDetailsImageUrl(product.getProductDetailsImageUrl())
         .categoryId(product.getCategoryId())
         .sellerId(product.getSellerId())
+        .storeName(product.getStoreName())
+        .storeImageUrl(product.getStoreImageUrl())
         .taste(product.getTaste())
         .rawMaterial(product.getRawMaterial())
         .food(product.getFood())
