@@ -185,6 +185,23 @@ public class SearchRestController {
                             .build());
   }
 
+    @GetMapping("/products/holiday")
+    public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getHolidayProduct(
+            @RequestHeader(required = false) Long memberId,
+            @RequestHeader(required = false) MemberRoleEnum memberRole,
+            @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 6)
+            Pageable pageable) {
+
+        return ResponseEntity.ok()
+                .body(
+                        ResponseFormat.<List<GetMainProductDto>>builder()
+                                .code(HttpStatus.OK.value())
+                                .message(HttpStatus.OK.name())
+                                .detail("설날 전통주 조회 성공")
+                                .data(searchService.getHolidayProduct(pageable, memberId))
+                                .build());
+    }
+
     @GetMapping("/products/all")
     public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
             @RequestHeader(required = false) Long memberId,
