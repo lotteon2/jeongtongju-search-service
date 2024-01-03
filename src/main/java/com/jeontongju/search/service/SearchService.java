@@ -317,6 +317,29 @@ public class SearchService {
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
   }
 
+  public List<GetMainProductDto> getHolidayProduct(Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchQuery("concept.text", "명절"))
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false))
+                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+            .forEach(
+                    order ->
+                            sourceBuilder.sort(
+                                    SortBuilders.fieldSort(order.getProperty())
+                                            .order(SortOrder.fromString(order.getDirection().name()))));
+
+    return getMainProductListByIsWish(consumerId, search(sourceBuilder));
+  }
+
   /** 메인 상품 목록 조회 일때, 찜 유무와 함께 */
   public List<GetMainProductDto> getMainProductListByIsWish(
       Long consumerId, SearchResponse searchResponse) {
