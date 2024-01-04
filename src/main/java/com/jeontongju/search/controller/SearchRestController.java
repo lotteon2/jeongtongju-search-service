@@ -172,7 +172,7 @@ public class SearchRestController {
   public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getProduct(
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
-          @PageableDefault(sort = "capacityToPriceRatio", direction = Sort.Direction.DESC, size = 6)
+          @PageableDefault(sort = "capacityToPriceRatio", direction = Sort.Direction.ASC, size = 6)
           Pageable pageable) {
 
     return ResponseEntity.ok()
