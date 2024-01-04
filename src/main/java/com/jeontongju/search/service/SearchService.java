@@ -3,7 +3,6 @@ package com.jeontongju.search.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
-import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.enums.temp.RawMaterialEnum;
 import com.jeontongju.search.exception.ProductNotFoundException;
@@ -22,6 +21,7 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
+import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.index.query.*;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
@@ -96,10 +96,10 @@ public class SearchService {
             .collect(Collectors.toList());
 
     return new PageImpl<GetMyProductDto>(
-            getMyProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);   }
+        getMyProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
+  }
 
-  public Page<GetSellerOneProductDto> getSellerOneProduct(
-      Long sellerId, Pageable pageable) {
+  public Page<GetSellerOneProductDto> getSellerOneProduct(Long sellerId, Pageable pageable) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
@@ -125,7 +125,7 @@ public class SearchService {
             .collect(Collectors.toList());
 
     return new PageImpl<GetSellerOneProductDto>(
-            getSellerOneProductList, pageable, searchResponse.getHits().getTotalHits().value);
+        getSellerOneProductList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
   public List<GetProductDto> getProductSellerShop(
@@ -236,8 +236,8 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-            QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text")
-                    .field("name", 2);
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text")
+            .field("name", 2);
 
     boolQuery.must(multiMatchQuery);
 
@@ -249,17 +249,45 @@ public class SearchService {
     sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
-            .forEach(
-                    order ->
-                            sourceBuilder.sort(
-                                    SortBuilders.fieldSort(order.getProperty())
-                                            .order(SortOrder.fromString(order.getDirection().name()))));
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
 
     SearchResponse searchResponse = search(sourceBuilder);
     List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
 
     return new PageImpl<GetProductDto>(
-            getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
+        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
+  }
+
+  public List<GetProductAutoDto> getProductByAutoSearch(String query) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+    BoolQueryBuilder mustBoolQuery =
+        QueryBuilders.boolQuery()
+            .should(new MatchPhrasePrefixQueryBuilder("name", query))
+            .should(QueryBuilders.fuzzyQuery("name", query).fuzziness(Fuzziness.ONE));
+
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(mustBoolQuery)
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false));
+    sourceBuilder.query(boolQuery);
+
+    sourceBuilder.from(0);
+    sourceBuilder.size(10);
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    return Arrays.stream(searchResponse.getHits().getHits())
+        .map(
+            hit ->
+                GetProductAutoDto.toDto(
+                    objectMapper.convertValue(hit.getSourceAsMap(), Product.class)))
+        .collect(Collectors.toList());
   }
 
   public List<GetMainProductDto> searchCerealCropsProduct(
@@ -287,11 +315,11 @@ public class SearchService {
 
   public GetCerealCropsProductDto getCerealCropsProduct(Pageable pageable, Long consumerId) {
     return GetCerealCropsProductDto.builder()
-            .sweetPotato(
-                    searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.SWEET_POTATO.getValue()))
-            .potato(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.POTATO.getValue()))
-            .corn(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.CORN.getValue()))
-            .build();
+        .sweetPotato(
+            searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.SWEET_POTATO.getValue()))
+        .potato(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.POTATO.getValue()))
+        .corn(searchCerealCropsProduct(pageable, consumerId, RawMaterialEnum.CORN.getValue()))
+        .build();
   }
 
   public List<GetMainProductDto> getProduct(Pageable pageable, Long consumerId) {
@@ -299,20 +327,20 @@ public class SearchService {
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(QueryBuilders.matchAllQuery())
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false))
-                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.matchAllQuery())
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false))
+            .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
     sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
-            .forEach(
-                    order ->
-                            sourceBuilder.sort(
-                                    SortBuilders.fieldSort(order.getProperty())
-                                            .order(SortOrder.fromString(order.getDirection().name()))));
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
 
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
   }
@@ -322,20 +350,20 @@ public class SearchService {
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(QueryBuilders.matchQuery("concept.text", "명절"))
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false))
-                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.matchQuery("concept.text", "명절"))
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false))
+            .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
     sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
-            .forEach(
-                    order ->
-                            sourceBuilder.sort(
-                                    SortBuilders.fieldSort(order.getProperty())
-                                            .order(SortOrder.fromString(order.getDirection().name()))));
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
 
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
   }
