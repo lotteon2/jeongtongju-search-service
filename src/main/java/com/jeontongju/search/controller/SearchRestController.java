@@ -1,6 +1,5 @@
 package com.jeontongju.search.controller;
 
-import com.jeontongju.search.dto.PageResponseFormat;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.service.SearchService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
@@ -199,6 +198,20 @@ public class SearchRestController {
                                 .message(HttpStatus.OK.name())
                                 .detail("설날 전통주 조회 성공")
                                 .data(searchService.getHolidayProduct(pageable, memberId))
+                                .build());
+    }
+
+    @GetMapping("/products/search/auto")
+    public ResponseEntity<ResponseFormat<List<GetProductAutoDto>>> getProductByAutoSearch(
+            @RequestParam String query) {
+
+        return ResponseEntity.ok()
+                .body(
+                        ResponseFormat.<List<GetProductAutoDto>>builder()
+                                .code(HttpStatus.OK.value())
+                                .message(HttpStatus.OK.name())
+                                .detail("상품 자동 완성 성공")
+                                .data(searchService.getProductByAutoSearch(query))
                                 .build());
     }
 
