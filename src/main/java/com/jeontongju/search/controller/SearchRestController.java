@@ -219,6 +219,7 @@ public class SearchRestController {
     public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
             @RequestHeader(required = false) Long memberId,
             @RequestHeader(required = false) MemberRoleEnum memberRole,
+            @RequestParam(required = false) Long price,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
             Pageable pageable) {
 
