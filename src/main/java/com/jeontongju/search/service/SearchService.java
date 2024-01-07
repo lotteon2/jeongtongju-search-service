@@ -8,10 +8,7 @@ import com.jeontongju.search.enums.temp.RawMaterialEnum;
 import com.jeontongju.search.exception.ProductNotFoundException;
 import io.github.bitbox.bitbox.dto.IsWishProductDto;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -178,13 +175,74 @@ public class SearchService {
   }
 
   public Page<GetProductDto> getProductByCategory(
-      Long categoryId, Pageable pageable, Long consumerId) {
+      Long categoryId,
+      Pageable pageable,
+      Long memberId,
+      List<String> rawMaterial,
+      List<String> food,
+      List<String> concept,
+      Long minPrice,
+      Long maxPrice,
+      Double minAlcoholDegree,
+      Double maxAlcoholDegree) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-    boolQuery.must(new TermQueryBuilder("categoryId", categoryId));
-    boolQuery.filter(new TermQueryBuilder("isActivate", true));
-    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(QueryBuilders.termQuery("categoryId", categoryId))
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false));
+
+    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
+    filterByTerms(boolQuery, food, "food.text");
+    filterByTerms(boolQuery, concept, "concept.text");
+
+    filterByRange(boolQuery, minPrice, maxPrice, "price");
+    filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
+
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(memberId, searchResponse);
+
+    return new PageImpl<GetProductDto>(
+        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
+  }
+
+  public Page<GetProductDto> getAllProduct(
+      Pageable pageable,
+      Long consumerId,
+      List<String> rawMaterial,
+      List<String> food,
+      List<String> concept,
+      Long minPrice,
+      Long maxPrice,
+      Double minAlcoholDegree,
+      Double maxAlcoholDegree) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+    BoolQueryBuilder boolQuery =
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.matchAllQuery())
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
+
+    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
+    filterByTerms(boolQuery, food, "food.text");
+    filterByTerms(boolQuery, concept, "concept.text");
+
+    filterByRange(boolQuery, minPrice, maxPrice, "price");
+    filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
 
     sourceBuilder.query(boolQuery);
     sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
@@ -203,31 +261,30 @@ public class SearchService {
         getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public Page<GetProductDto> getAllProduct(Pageable pageable, Long consumerId) {
+  private void filterByTerms(BoolQueryBuilder boolQuery, List<String> terms, String fieldName) {
+    if (terms != null) {
+      boolQuery.filter(QueryBuilders.termsQuery(fieldName, terms));
+    }
+  }
 
-    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+  private void filterByRange(
+      BoolQueryBuilder boolQuery, Long minValue, Long maxValue, String fieldName) {
+    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
 
-    BoolQueryBuilder boolQuery =
-        QueryBuilders.boolQuery()
-            .must(QueryBuilders.matchAllQuery())
-            .filter(QueryBuilders.termQuery("isActivate", true))
-            .filter(QueryBuilders.termQuery("isDeleted", false));
+    Optional.ofNullable(minValue).ifPresent(rangeQueryBuilder::gte);
+    Optional.ofNullable(maxValue).ifPresent(rangeQueryBuilder::lte);
 
-    sourceBuilder.query(boolQuery);
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
-    sourceBuilder.size(pageable.getPageSize());
-    pageable.getSort().stream()
-        .forEach(
-            order ->
-                sourceBuilder.sort(
-                    SortBuilders.fieldSort(order.getProperty())
-                        .order(SortOrder.fromString(order.getDirection().name()))));
+    boolQuery.filter(rangeQueryBuilder);
+  }
 
-    SearchResponse searchResponse = search(sourceBuilder);
-    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+  private void filterByRange(
+      BoolQueryBuilder boolQuery, Double minValue, Double maxValue, String fieldName) {
+    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
 
-    return new PageImpl<GetProductDto>(
-        getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
+    Optional.ofNullable(minValue).ifPresent(rangeQueryBuilder::gte);
+    Optional.ofNullable(maxValue).ifPresent(rangeQueryBuilder::lte);
+
+    boolQuery.filter(rangeQueryBuilder);
   }
 
   public Page<GetProductDto> getProductBySearch(String query, Pageable pageable, Long consumerId) {
@@ -272,10 +329,10 @@ public class SearchService {
             .should(QueryBuilders.fuzzyQuery("name", query).fuzziness(Fuzziness.ONE));
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(mustBoolQuery)
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false));
+        QueryBuilders.boolQuery()
+            .must(mustBoolQuery)
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
     sourceBuilder.query(boolQuery);
 
     sourceBuilder.from(0);
