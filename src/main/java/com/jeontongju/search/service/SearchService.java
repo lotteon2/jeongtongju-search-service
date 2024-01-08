@@ -269,13 +269,13 @@ public class SearchService {
     BoolQueryBuilder mustBoolQuery =
         QueryBuilders.boolQuery()
             .should(new MatchPhrasePrefixQueryBuilder("name", query))
-            .should(QueryBuilders.fuzzyQuery("name", query).fuzziness(Fuzziness.ONE));
+            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.build("0.5")));
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(mustBoolQuery)
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false));
+        QueryBuilders.boolQuery()
+            .must(mustBoolQuery)
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
     sourceBuilder.query(boolQuery);
 
     sourceBuilder.from(0);
