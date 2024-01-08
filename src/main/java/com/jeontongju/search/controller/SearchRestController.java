@@ -118,6 +118,13 @@ public class SearchRestController {
       getProductByCategory(
           @RequestHeader(required = false) Long memberId,
           @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @RequestParam(required = false) List<String> rawMaterial,
+          @RequestParam(required = false) List<String > food,
+          @RequestParam(required = false) List<String > concept,
+          @RequestParam(required = false) Long minPrice,
+          @RequestParam(required = false) Long maxPrice,
+          @RequestParam(required = false) Double minAlcoholDegree,
+          @RequestParam(required = false) Double maxAlcoholDegree,
           @RequestParam Long id,
           @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
               Pageable pageable) {
@@ -128,7 +135,7 @@ public class SearchRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("카테고리 별 상품 목록 성공")
-                .data(searchService.getProductByCategory(id, pageable, memberId))
+                .data(searchService.getProductByCategory(id, pageable, memberId, rawMaterial, food, concept, minPrice, maxPrice, minAlcoholDegree, maxAlcoholDegree))
                 .build());
   }
 
@@ -219,6 +226,13 @@ public class SearchRestController {
     public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
             @RequestHeader(required = false) Long memberId,
             @RequestHeader(required = false) MemberRoleEnum memberRole,
+            @RequestParam(required = false) List<String> rawMaterial,
+            @RequestParam(required = false) List<String > food,
+            @RequestParam(required = false) List<String > concept,
+            @RequestParam(required = false) Long minPrice,
+            @RequestParam(required = false) Long maxPrice,
+            @RequestParam(required = false) Double minAlcoholDegree,
+            @RequestParam(required = false) Double maxAlcoholDegree,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
             Pageable pageable) {
 
@@ -228,7 +242,7 @@ public class SearchRestController {
                                 .code(HttpStatus.OK.value())
                                 .message(HttpStatus.OK.name())
                                 .detail("모든 상품 조회 성공")
-                                .data(searchService.getAllProduct(pageable, memberId))
+                                .data(searchService.getAllProduct(pageable, memberId, rawMaterial, food, concept, minPrice, maxPrice, minAlcoholDegree, maxAlcoholDegree))
                                 .build());
     }
 }
