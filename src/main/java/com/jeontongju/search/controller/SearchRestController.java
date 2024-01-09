@@ -1,6 +1,9 @@
 package com.jeontongju.search.controller;
 
 import com.jeontongju.search.dto.response.*;
+import com.jeontongju.search.enums.temp.ConceptTypeEnum;
+import com.jeontongju.search.enums.temp.FoodTypeEnum;
+import com.jeontongju.search.enums.temp.RawMaterialEnum;
 import com.jeontongju.search.service.SearchService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
@@ -115,9 +118,9 @@ public class SearchRestController {
   public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getProductByCategory(
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
-      @RequestParam(required = false) List<String> rawMaterial,
-      @RequestParam(required = false) List<String> food,
-      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) List<RawMaterialEnum> rawMaterial,
+      @RequestParam(required = false) List<FoodTypeEnum> food,
+      @RequestParam(required = false) List<ConceptTypeEnum> concept,
       @RequestParam(required = false) Long minPrice,
       @RequestParam(required = false) Long maxPrice,
       @RequestParam(required = false) Double minAlcoholDegree,
@@ -152,9 +155,9 @@ public class SearchRestController {
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
       @RequestParam String query,
-      @RequestParam(required = false) List<String> rawMaterial,
-      @RequestParam(required = false) List<String> food,
-      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) List<RawMaterialEnum> rawMaterial,
+      @RequestParam(required = false) List<FoodTypeEnum> food,
+      @RequestParam(required = false) List<ConceptTypeEnum> concept,
       @RequestParam(required = false) Long minPrice,
       @RequestParam(required = false) Long maxPrice,
       @RequestParam(required = false) Double minAlcoholDegree,
@@ -252,9 +255,9 @@ public class SearchRestController {
   public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
-      @RequestParam(required = false) List<String> rawMaterial,
-      @RequestParam(required = false) List<String> food,
-      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) List<RawMaterialEnum> rawMaterial,
+      @RequestParam(required = false) List<FoodTypeEnum> food,
+      @RequestParam(required = false) List<ConceptTypeEnum> concept,
       @RequestParam(required = false) Long minPrice,
       @RequestParam(required = false) Long maxPrice,
       @RequestParam(required = false) Double minAlcoholDegree,

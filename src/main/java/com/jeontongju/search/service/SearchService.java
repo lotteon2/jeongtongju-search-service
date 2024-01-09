@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
 import com.jeontongju.search.dto.response.*;
+import com.jeontongju.search.enums.temp.ConceptTypeEnum;
+import com.jeontongju.search.enums.temp.FoodTypeEnum;
 import com.jeontongju.search.enums.temp.RawMaterialEnum;
 import com.jeontongju.search.exception.ProductNotFoundException;
 import io.github.bitbox.bitbox.dto.IsWishProductDto;
@@ -178,9 +180,9 @@ public class SearchService {
       Long categoryId,
       Pageable pageable,
       Long memberId,
-      List<String> rawMaterial,
-      List<String> food,
-      List<String> concept,
+      List<RawMaterialEnum> rawMaterial,
+      List<FoodTypeEnum> food,
+      List<ConceptTypeEnum> concept,
       Long minPrice,
       Long maxPrice,
       Double minAlcoholDegree,
@@ -194,9 +196,18 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false));
 
-    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
-    filterByTerms(boolQuery, food, "food.text");
-    filterByTerms(boolQuery, concept, "concept.text");
+    filterByTerms(
+            boolQuery,
+            rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
+            "rawMaterial.text");
+
+    filterByTerms(
+            boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+
+    filterByTerms(
+            boolQuery,
+            concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
+            "concept.text");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -221,9 +232,9 @@ public class SearchService {
   public Page<GetProductDto> getAllProduct(
       Pageable pageable,
       Long consumerId,
-      List<String> rawMaterial,
-      List<String> food,
-      List<String> concept,
+      List<RawMaterialEnum> rawMaterial,
+      List<FoodTypeEnum> food,
+      List<ConceptTypeEnum> concept,
       Long minPrice,
       Long maxPrice,
       Double minAlcoholDegree,
@@ -237,9 +248,18 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false));
 
-    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
-    filterByTerms(boolQuery, food, "food.text");
-    filterByTerms(boolQuery, concept, "concept.text");
+    filterByTerms(
+            boolQuery,
+            rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
+            "rawMaterial.text");
+
+    filterByTerms(
+            boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+
+    filterByTerms(
+            boolQuery,
+            concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
+            "concept.text");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -261,7 +281,17 @@ public class SearchService {
         getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public Page<GetProductDto> getProductBySearch(String query, Pageable pageable, Long consumerId, List<String> rawMaterial, List<String> food, List<String> concept, Long minPrice, Long maxPrice, Double minAlcoholDegree, Double maxAlcoholDegree) {
+  public Page<GetProductDto> getProductBySearch(
+      String query,
+      Pageable pageable,
+      Long consumerId,
+      List<RawMaterialEnum> rawMaterial,
+      List<FoodTypeEnum> food,
+      List<ConceptTypeEnum> concept,
+      Long minPrice,
+      Long maxPrice,
+      Double minAlcoholDegree,
+      Double maxAlcoholDegree) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
@@ -275,9 +305,18 @@ public class SearchService {
     boolQuery.filter(new TermQueryBuilder("isActivate", true));
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
 
-    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
-    filterByTerms(boolQuery, food, "food.text");
-    filterByTerms(boolQuery, concept, "concept.text");
+    filterByTerms(
+        boolQuery,
+        rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
+        "rawMaterial.text");
+
+    filterByTerms(
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+
+    filterByTerms(
+        boolQuery,
+        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
+        "concept.text");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -413,7 +452,7 @@ public class SearchService {
   }
 
   private void filterByRange(
-          BoolQueryBuilder boolQuery, Long minValue, Long maxValue, String fieldName) {
+      BoolQueryBuilder boolQuery, Long minValue, Long maxValue, String fieldName) {
     RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
 
     if (minValue != -1) {
@@ -426,7 +465,7 @@ public class SearchService {
   }
 
   private void filterByRange(
-          BoolQueryBuilder boolQuery, Double minValue, Double maxValue, String fieldName) {
+      BoolQueryBuilder boolQuery, Double minValue, Double maxValue, String fieldName) {
 
     RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
 
