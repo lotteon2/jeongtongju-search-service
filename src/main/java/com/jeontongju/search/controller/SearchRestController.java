@@ -54,13 +54,12 @@ public class SearchRestController {
   }
 
   @GetMapping("/admin/sellers/{sellerId}/products")
-  public ResponseEntity<ResponseFormat<Page<GetSellerOneProductDto>>>
-      getSellerOneProduct(
-          @PathVariable Long sellerId,
-          @RequestHeader Long memberId,
-          @RequestHeader MemberRoleEnum memberRole,
-          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
-              Pageable pageable) {
+  public ResponseEntity<ResponseFormat<Page<GetSellerOneProductDto>>> getSellerOneProduct(
+      @PathVariable Long sellerId,
+      @RequestHeader Long memberId,
+      @RequestHeader MemberRoleEnum memberRole,
+      @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
+          Pageable pageable) {
 
     return ResponseEntity.ok()
         .body(
@@ -73,13 +72,12 @@ public class SearchRestController {
   }
 
   @GetMapping("/sellers/{sellerId}/products/all")
-  public ResponseEntity<ResponseFormat<Page<GetProductDto>>>
-      getAllProductAtSellerShop(
-          @PathVariable Long sellerId,
-          @RequestHeader(required = false) Long memberId,
-          @RequestHeader(required = false) MemberRoleEnum memberRole,
-          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
-              Pageable pageable) {
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProductAtSellerShop(
+      @PathVariable Long sellerId,
+      @RequestHeader(required = false) Long memberId,
+      @RequestHeader(required = false) MemberRoleEnum memberRole,
+      @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
+          Pageable pageable) {
 
     return ResponseEntity.ok()
         .body(
@@ -114,20 +112,19 @@ public class SearchRestController {
   }
 
   @GetMapping("/products/categories")
-  public ResponseEntity<ResponseFormat<Page<GetProductDto>>>
-      getProductByCategory(
-          @RequestHeader(required = false) Long memberId,
-          @RequestHeader(required = false) MemberRoleEnum memberRole,
-          @RequestParam(required = false) List<String> rawMaterial,
-          @RequestParam(required = false) List<String > food,
-          @RequestParam(required = false) List<String > concept,
-          @RequestParam(required = false) Long minPrice,
-          @RequestParam(required = false) Long maxPrice,
-          @RequestParam(required = false) Double minAlcoholDegree,
-          @RequestParam(required = false) Double maxAlcoholDegree,
-          @RequestParam Long id,
-          @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
-              Pageable pageable) {
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getProductByCategory(
+      @RequestHeader(required = false) Long memberId,
+      @RequestHeader(required = false) MemberRoleEnum memberRole,
+      @RequestParam(required = false) List<String> rawMaterial,
+      @RequestParam(required = false) List<String> food,
+      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) Long minPrice,
+      @RequestParam(required = false) Long maxPrice,
+      @RequestParam(required = false) Double minAlcoholDegree,
+      @RequestParam(required = false) Double maxAlcoholDegree,
+      @RequestParam Long id,
+      @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 10)
+          Pageable pageable) {
 
     return ResponseEntity.ok()
         .body(
@@ -135,7 +132,18 @@ public class SearchRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("카테고리 별 상품 목록 성공")
-                .data(searchService.getProductByCategory(id, pageable, memberId, rawMaterial, food, concept, minPrice, maxPrice, minAlcoholDegree, maxAlcoholDegree))
+                .data(
+                    searchService.getProductByCategory(
+                        id,
+                        pageable,
+                        memberId,
+                        rawMaterial,
+                        food,
+                        concept,
+                        minPrice,
+                        maxPrice,
+                        minAlcoholDegree,
+                        maxAlcoholDegree))
                 .build());
   }
 
@@ -144,6 +152,13 @@ public class SearchRestController {
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
       @RequestParam String query,
+      @RequestParam(required = false) List<String> rawMaterial,
+      @RequestParam(required = false) List<String> food,
+      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) Long minPrice,
+      @RequestParam(required = false) Long maxPrice,
+      @RequestParam(required = false) Double minAlcoholDegree,
+      @RequestParam(required = false) Double maxAlcoholDegree,
       @PageableDefault(page = 0, sort = "_score", direction = Sort.Direction.DESC, size = 10)
           Pageable pageable) {
 
@@ -153,7 +168,18 @@ public class SearchRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("상품 검색 성공")
-                .data(searchService.getProductBySearch(query, pageable, memberId))
+                .data(
+                    searchService.getProductBySearch(
+                        query,
+                        pageable,
+                        memberId,
+                        rawMaterial,
+                        food,
+                        concept,
+                        minPrice,
+                        maxPrice,
+                        minAlcoholDegree,
+                        maxAlcoholDegree))
                 .build());
   }
 
@@ -176,73 +202,83 @@ public class SearchRestController {
 
   @GetMapping("/products")
   public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getProduct(
-          @RequestHeader(required = false) Long memberId,
-          @RequestHeader(required = false) MemberRoleEnum memberRole,
-          @PageableDefault(sort = "capacityToPriceRatio", direction = Sort.Direction.ASC, size = 6)
+      @RequestHeader(required = false) Long memberId,
+      @RequestHeader(required = false) MemberRoleEnum memberRole,
+      @PageableDefault(sort = "capacityToPriceRatio", direction = Sort.Direction.ASC, size = 6)
           Pageable pageable) {
 
     return ResponseEntity.ok()
-            .body(
-                    ResponseFormat.<List<GetMainProductDto>>builder()
-                            .code(HttpStatus.OK.value())
-                            .message(HttpStatus.OK.name())
-                            .detail("상품 조회 성공")
-                            .data(searchService.getProduct(pageable, memberId))
-                            .build());
+        .body(
+            ResponseFormat.<List<GetMainProductDto>>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("상품 조회 성공")
+                .data(searchService.getProduct(pageable, memberId))
+                .build());
   }
 
-    @GetMapping("/products/holiday")
-    public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getHolidayProduct(
-            @RequestHeader(required = false) Long memberId,
-            @RequestHeader(required = false) MemberRoleEnum memberRole,
-            @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 6)
-            Pageable pageable) {
+  @GetMapping("/products/holiday")
+  public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getHolidayProduct(
+      @RequestHeader(required = false) Long memberId,
+      @RequestHeader(required = false) MemberRoleEnum memberRole,
+      @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 6)
+          Pageable pageable) {
 
-        return ResponseEntity.ok()
-                .body(
-                        ResponseFormat.<List<GetMainProductDto>>builder()
-                                .code(HttpStatus.OK.value())
-                                .message(HttpStatus.OK.name())
-                                .detail("설날 전통주 조회 성공")
-                                .data(searchService.getHolidayProduct(pageable, memberId))
-                                .build());
-    }
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<List<GetMainProductDto>>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("설날 전통주 조회 성공")
+                .data(searchService.getHolidayProduct(pageable, memberId))
+                .build());
+  }
 
-    @GetMapping("/products/search/auto")
-    public ResponseEntity<ResponseFormat<List<GetProductAutoDto>>> getProductByAutoSearch(
-            @RequestParam String query) {
+  @GetMapping("/products/search/auto")
+  public ResponseEntity<ResponseFormat<List<GetProductAutoDto>>> getProductByAutoSearch(
+      @RequestParam String query) {
 
-        return ResponseEntity.ok()
-                .body(
-                        ResponseFormat.<List<GetProductAutoDto>>builder()
-                                .code(HttpStatus.OK.value())
-                                .message(HttpStatus.OK.name())
-                                .detail("상품 자동 완성 성공")
-                                .data(searchService.getProductByAutoSearch(query))
-                                .build());
-    }
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<List<GetProductAutoDto>>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("상품 자동 완성 성공")
+                .data(searchService.getProductByAutoSearch(query))
+                .build());
+  }
 
-    @GetMapping("/products/all")
-    public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
-            @RequestHeader(required = false) Long memberId,
-            @RequestHeader(required = false) MemberRoleEnum memberRole,
-            @RequestParam(required = false) List<String> rawMaterial,
-            @RequestParam(required = false) List<String > food,
-            @RequestParam(required = false) List<String > concept,
-            @RequestParam(required = false) Long minPrice,
-            @RequestParam(required = false) Long maxPrice,
-            @RequestParam(required = false) Double minAlcoholDegree,
-            @RequestParam(required = false) Double maxAlcoholDegree,
-            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
-            Pageable pageable) {
+  @GetMapping("/products/all")
+  public ResponseEntity<ResponseFormat<Page<GetProductDto>>> getAllProduct(
+      @RequestHeader(required = false) Long memberId,
+      @RequestHeader(required = false) MemberRoleEnum memberRole,
+      @RequestParam(required = false) List<String> rawMaterial,
+      @RequestParam(required = false) List<String> food,
+      @RequestParam(required = false) List<String> concept,
+      @RequestParam(required = false) Long minPrice,
+      @RequestParam(required = false) Long maxPrice,
+      @RequestParam(required = false) Double minAlcoholDegree,
+      @RequestParam(required = false) Double maxAlcoholDegree,
+      @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
+          Pageable pageable) {
 
-        return ResponseEntity.ok()
-                .body(
-                        ResponseFormat.<Page<GetProductDto>>builder()
-                                .code(HttpStatus.OK.value())
-                                .message(HttpStatus.OK.name())
-                                .detail("모든 상품 조회 성공")
-                                .data(searchService.getAllProduct(pageable, memberId, rawMaterial, food, concept, minPrice, maxPrice, minAlcoholDegree, maxAlcoholDegree))
-                                .build());
-    }
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Page<GetProductDto>>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("모든 상품 조회 성공")
+                .data(
+                    searchService.getAllProduct(
+                        pageable,
+                        memberId,
+                        rawMaterial,
+                        food,
+                        concept,
+                        minPrice,
+                        maxPrice,
+                        minAlcoholDegree,
+                        maxAlcoholDegree))
+                .build());
+  }
 }

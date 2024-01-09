@@ -189,10 +189,10 @@ public class SearchService {
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(QueryBuilders.termQuery("categoryId", categoryId))
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false));
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.termQuery("categoryId", categoryId))
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
 
     filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
     filterByTerms(boolQuery, food, "food.text");
@@ -261,33 +261,7 @@ public class SearchService {
         getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  private void filterByTerms(BoolQueryBuilder boolQuery, List<String> terms, String fieldName) {
-    if (terms != null) {
-      boolQuery.filter(QueryBuilders.termsQuery(fieldName, terms));
-    }
-  }
-
-  private void filterByRange(
-      BoolQueryBuilder boolQuery, Long minValue, Long maxValue, String fieldName) {
-    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
-
-    Optional.ofNullable(minValue).ifPresent(rangeQueryBuilder::gte);
-    Optional.ofNullable(maxValue).ifPresent(rangeQueryBuilder::lte);
-
-    boolQuery.filter(rangeQueryBuilder);
-  }
-
-  private void filterByRange(
-      BoolQueryBuilder boolQuery, Double minValue, Double maxValue, String fieldName) {
-    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
-
-    Optional.ofNullable(minValue).ifPresent(rangeQueryBuilder::gte);
-    Optional.ofNullable(maxValue).ifPresent(rangeQueryBuilder::lte);
-
-    boolQuery.filter(rangeQueryBuilder);
-  }
-
-  public Page<GetProductDto> getProductBySearch(String query, Pageable pageable, Long consumerId) {
+  public Page<GetProductDto> getProductBySearch(String query, Pageable pageable, Long consumerId, List<String> rawMaterial, List<String> food, List<String> concept, Long minPrice, Long maxPrice, Double minAlcoholDegree, Double maxAlcoholDegree) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
@@ -300,6 +274,13 @@ public class SearchService {
 
     boolQuery.filter(new TermQueryBuilder("isActivate", true));
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+
+    filterByTerms(boolQuery, rawMaterial, "rawMaterial.text");
+    filterByTerms(boolQuery, food, "food.text");
+    filterByTerms(boolQuery, concept, "concept.text");
+
+    filterByRange(boolQuery, minPrice, maxPrice, "price");
+    filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
 
     sourceBuilder.query(boolQuery);
 
@@ -423,6 +404,39 @@ public class SearchService {
                         .order(SortOrder.fromString(order.getDirection().name()))));
 
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
+  }
+
+  private void filterByTerms(BoolQueryBuilder boolQuery, List<String> terms, String fieldName) {
+    if (terms.size() != 0) {
+      boolQuery.filter(QueryBuilders.termsQuery(fieldName, terms));
+    }
+  }
+
+  private void filterByRange(
+          BoolQueryBuilder boolQuery, Long minValue, Long maxValue, String fieldName) {
+    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
+
+    if (minValue != -1) {
+      rangeQueryBuilder.gte(minValue);
+    }
+    if (maxValue != -1) {
+      rangeQueryBuilder.lte(maxValue);
+    }
+    boolQuery.filter(rangeQueryBuilder);
+  }
+
+  private void filterByRange(
+          BoolQueryBuilder boolQuery, Double minValue, Double maxValue, String fieldName) {
+
+    RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(fieldName);
+
+    if (minValue != -1) {
+      rangeQueryBuilder.gte(minValue);
+    }
+    if (maxValue != -1) {
+      rangeQueryBuilder.lte(maxValue);
+    }
+    boolQuery.filter(rangeQueryBuilder);
   }
 
   /** 메인 상품 목록 조회 일때, 찜 유무와 함께 */
