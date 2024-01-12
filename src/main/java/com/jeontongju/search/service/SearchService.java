@@ -72,8 +72,11 @@ public class SearchService {
   public Page<GetMyProductDto> getMyProduct(Long sellerId, Pageable pageable) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+    boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
+    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+    sourceBuilder.query(boolQuery);
+
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
@@ -101,8 +104,11 @@ public class SearchService {
   public Page<GetSellerOneProductDto> getSellerOneProduct(Long sellerId, Pageable pageable) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    sourceBuilder.query(QueryBuilders.termQuery("sellerId", sellerId));
-    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+    boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
+    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
+    sourceBuilder.query(boolQuery);
+
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
