@@ -46,7 +46,6 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
     boolQuery.must(new TermQueryBuilder("productId", productId));
     boolQuery.filter(new TermQueryBuilder("isActivate", true));
-    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     sourceBuilder.query(boolQuery);
@@ -76,7 +75,7 @@ public class SearchService {
     boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
     sourceBuilder.query(boolQuery);
-
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
@@ -108,7 +107,7 @@ public class SearchService {
     boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
     sourceBuilder.query(boolQuery);
-
+    sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
     sourceBuilder.size(pageable.getPageSize());
 
     pageable.getSort().stream()
