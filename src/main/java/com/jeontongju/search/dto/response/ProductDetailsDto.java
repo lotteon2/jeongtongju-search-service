@@ -64,6 +64,10 @@ public class ProductDetailsDto {
 
   private Boolean isLikes;
 
+  private Boolean isDeleted;
+
+  private Boolean isActivate;
+
   public static ProductDetailsDto toDto(Product product, Boolean isLikes) {
 
     return ProductDetailsDto.builder()
@@ -92,6 +96,8 @@ public class ProductDetailsDto {
         .concept(product.getConcept())
         .isSoldOut(product.getStockQuantity() <= 0)
         .isLikes(isLikes)
+        .isActivate(product.getIsActivate())
+        .isDeleted(product.getIsDeleted())
         .build();
   }
 }

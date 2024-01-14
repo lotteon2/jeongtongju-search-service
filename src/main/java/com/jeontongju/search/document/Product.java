@@ -45,6 +45,8 @@ public class Product {
 
   private Long totalSalesCount;
 
+  private Long accumulateTotalSalesCount;
+
   private String storeName;
 
   private String storeImageUrl;
