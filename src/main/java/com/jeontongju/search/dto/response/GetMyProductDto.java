@@ -48,7 +48,7 @@ public class GetMyProductDto {
         .productId(product.getProductId())
         .productName(product.getName())
         .productThumbnailImageUrl(product.getProductThumbnailImageUrl())
-        .totalSalesCount(product.getTotalSalesCount())
+        .totalSalesCount(product.getAccumulateTotalSalesCount())
         .productPrice(product.getPrice())
         .stockQuantity(product.getStockQuantity())
         .reviewCount(product.getReviewCount())

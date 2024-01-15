@@ -32,7 +32,7 @@ public class GetSellerOneProductDto {
     return GetSellerOneProductDto.builder()
         .productId(product.getProductId())
         .productName(product.getName())
-        .totalSalesCount(product.getTotalSalesCount())
+        .totalSalesCount(product.getAccumulateTotalSalesCount())
         .productPrice(product.getPrice())
         .stockQuantity(product.getStockQuantity())
         .reviewCount(product.getReviewCount())

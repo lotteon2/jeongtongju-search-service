@@ -224,7 +224,7 @@ public class SearchRestController {
   public ResponseEntity<ResponseFormat<List<GetMainProductDto>>> getHolidayProduct(
       @RequestHeader(required = false) Long memberId,
       @RequestHeader(required = false) MemberRoleEnum memberRole,
-      @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 6)
+      @PageableDefault(sort = "accumulateTotalSalesCount", direction = Sort.Direction.DESC, size = 6)
           Pageable pageable) {
 
     return ResponseEntity.ok()
@@ -262,7 +262,7 @@ public class SearchRestController {
       @RequestParam(required = false) Long maxPrice,
       @RequestParam(required = false) Double minAlcoholDegree,
       @RequestParam(required = false) Double maxAlcoholDegree,
-      @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
+      @PageableDefault(page = 0, sort = "createdAt", direction = Sort.Direction.DESC, size = 6)
           Pageable pageable) {
 
     return ResponseEntity.ok()
@@ -283,5 +283,35 @@ public class SearchRestController {
                         minAlcoholDegree,
                         maxAlcoholDegree))
                 .build());
+  }
+
+  @GetMapping("/sellers/best")
+  public ResponseEntity<ResponseFormat<List<GetBestSellerDto>>> getBestSeller(
+          @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 10)
+          Pageable pageable) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<List<GetBestSellerDto>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("베스트 셀러 조회 성공")
+                            .data(searchService.getBestSeller(pageable))
+                            .build());
+  }
+
+  @GetMapping("/products/best")
+  public ResponseEntity<ResponseFormat<List<GetBestProductDto>>> getBestProduct(
+          @PageableDefault(sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 10)
+          Pageable pageable) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<List<GetBestProductDto>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("베스트 상품 조회 성공")
+                            .data(searchService.getBestProduct(pageable))
+                            .build());
   }
 }
