@@ -22,7 +22,13 @@ import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.index.query.*;
+import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.BucketOrder;
+import org.opensearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.opensearch.search.aggregations.bucket.terms.Terms.Bucket;
+import org.opensearch.search.aggregations.metrics.ParsedTopHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
@@ -43,13 +49,8 @@ public class SearchService {
 
   public ProductDetailsDto getProductDetails(String productId, Long memberId) {
 
-    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-    boolQuery.must(new TermQueryBuilder("productId", productId));
-    boolQuery.filter(new TermQueryBuilder("isActivate", true));
-
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    sourceBuilder.query(boolQuery);
-
+    sourceBuilder.query(new TermQueryBuilder("productId", productId));
     SearchResponse searchResponse = search(sourceBuilder);
 
     Boolean isLikes = false;
@@ -202,17 +203,17 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isDeleted", false));
 
     filterByTerms(
-            boolQuery,
-            rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
-            "rawMaterial.text");
+        boolQuery,
+        rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
+        "rawMaterial.text");
 
     filterByTerms(
-            boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
 
     filterByTerms(
-            boolQuery,
-            concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-            "concept.text");
+        boolQuery,
+        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
+        "concept.text");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -254,17 +255,17 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isDeleted", false));
 
     filterByTerms(
-            boolQuery,
-            rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
-            "rawMaterial.text");
+        boolQuery,
+        rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
+        "rawMaterial.text");
 
     filterByTerms(
-            boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
 
     filterByTerms(
-            boolQuery,
-            concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-            "concept.text");
+        boolQuery,
+        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
+        "concept.text");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -351,7 +352,7 @@ public class SearchService {
     BoolQueryBuilder mustBoolQuery =
         QueryBuilders.boolQuery()
             .should(new MatchPhrasePrefixQueryBuilder("name", query))
-            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.build("0.5")));
+            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
@@ -448,6 +449,91 @@ public class SearchService {
                         .order(SortOrder.fromString(order.getDirection().name()))));
 
     return getMainProductListByIsWish(consumerId, search(sourceBuilder));
+  }
+
+  public List<GetBestProductDto> getBestProduct(Pageable pageable) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+    BoolQueryBuilder boolQuery =
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.matchAllQuery())
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
+
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+        .forEach(
+            order ->
+                sourceBuilder.sort(
+                    SortBuilders.fieldSort(order.getProperty())
+                        .order(SortOrder.fromString(order.getDirection().name()))));
+
+    return Arrays.stream(search(sourceBuilder).getHits().getHits())
+        .map(
+            hit ->
+                GetBestProductDto.toDto(
+                    objectMapper.convertValue(hit.getSourceAsMap(), Product.class)))
+        .collect(Collectors.toList());
+  }
+
+  public List<GetBestSellerDto> getBestSeller(Pageable pageable) {
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    List<GetBestSellerDto> getBestSellerDtoList = new ArrayList<>();
+
+    sourceBuilder.query(
+        QueryBuilders.boolQuery()
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false)));
+
+    sourceBuilder.aggregation(
+        AggregationBuilders.terms("groupBySeller")
+            .field("sellerId")
+            .size(10)
+            .order(BucketOrder.aggregation("sumTotalSalesCount", false))
+            .subAggregation(AggregationBuilders.sum("sumTotalSalesCount").field("totalSalesCount"))
+            .subAggregation(
+                AggregationBuilders.topHits("topSellerHits")
+                    .size(1)
+                    .fetchSource(new String[] {"sellerId", "storeName", "storeImageUrl"}, null)));
+
+    sourceBuilder.size(0);
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    ParsedStringTerms groupBySellerAggregation =
+        searchResponse.getAggregations().get("groupBySeller");
+
+    for (Bucket bucket : groupBySellerAggregation.getBuckets()) {
+      ParsedTopHits topSellerHitsAggregation = bucket.getAggregations().get("topSellerHits");
+      GetBestSellerDto bestSellerDto = mappingGetBestSellerDto(topSellerHitsAggregation);
+      getBestSellerDtoList.add(bestSellerDto);
+    }
+
+    return getBestSellerDtoList;
+  }
+
+  private GetBestSellerDto mappingGetBestSellerDto(ParsedTopHits topHits) {
+
+    GetBestSellerDto bestSellerDto = null;
+    if (topHits.getHits().getHits().length > 0) {
+
+      SearchHit firstHit = topHits.getHits().getHits()[0];
+      Map<String, Object> sourceAsMap = firstHit.getSourceAsMap();
+
+      int sellerId = (int) sourceAsMap.get("sellerId");
+      String storeName = (String) sourceAsMap.get("storeName");
+      String storeImageUrl = (String) sourceAsMap.get("storeImageUrl");
+
+      bestSellerDto =
+          GetBestSellerDto.builder()
+              .sellerId(sellerId)
+              .storeName(storeName)
+              .storeImageUrl(storeImageUrl)
+              .build();
+    }
+
+    return bestSellerDto;
   }
 
   private void filterByTerms(BoolQueryBuilder boolQuery, List<String> terms, String fieldName) {
