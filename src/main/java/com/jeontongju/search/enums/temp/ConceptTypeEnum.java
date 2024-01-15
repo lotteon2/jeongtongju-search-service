@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ConceptTypeEnum {
-  CAMPING("캠핑 "),
+  CAMPING("캠핑"),
   FISHING("낚시"),
   PARTY("파티"),
   GATHERING("모임"),
