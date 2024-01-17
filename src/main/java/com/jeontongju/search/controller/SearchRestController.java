@@ -186,6 +186,28 @@ public class SearchRestController {
                 .build());
   }
 
+  @GetMapping("/products/recommend")
+  public ResponseEntity<ResponseFormat<List<GetProductDto>>> recommendProduct(
+          @RequestHeader(required = false) Long memberId,
+          @RequestHeader(required = false) MemberRoleEnum memberRole,
+          @RequestParam String query,
+          @PageableDefault(page = 0, sort = "totalSalesCount", direction = Sort.Direction.DESC, size = 3)
+          Pageable pageable) {
+
+    return ResponseEntity.ok()
+            .body(
+                    ResponseFormat.<List<GetProductDto>>builder()
+                            .code(HttpStatus.OK.value())
+                            .message(HttpStatus.OK.name())
+                            .detail("상품 추천 성공")
+                            .data(
+                                    searchService.recommendProduct(
+                                            query,
+                                            pageable,
+                                            memberId))
+                            .build());
+  }
+
   @GetMapping("/products/cereal-crops")
   public ResponseEntity<ResponseFormat<GetCerealCropsProductDto>> getCerealCropsProduct(
       @RequestHeader(required = false) Long memberId,
