@@ -107,7 +107,11 @@ public class SearchService {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-    boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
+
+    if (sellerId != -1) {
+      boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
+    }
+
     boolQuery.filter(new TermQueryBuilder("isDeleted", false));
     sourceBuilder.query(boolQuery);
     sourceBuilder.from(pageable.getPageNumber() * pageable.getPageSize());
@@ -139,12 +143,20 @@ public class SearchService {
       Long sellerId, Pageable pageable, Long consumerId) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-    boolQuery.must(new TermQueryBuilder("sellerId", sellerId));
-    boolQuery.filter(new TermQueryBuilder("isActivate", true));
-    boolQuery.filter(new TermQueryBuilder("isDeleted", false));
-    sourceBuilder.query(boolQuery);
 
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(QueryBuilders.termQuery("sellerId", sellerId))
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false));
+
+    if (pageable.getSort().iterator().next().getProperty().equals("reviewCount")) {
+      boolQuery.filter(QueryBuilders.rangeQuery("reviewCount").gt(0));
+    } else if(pageable.getSort().iterator().next().getProperty().equals("totalSalesCount")) {
+      boolQuery.filter(QueryBuilders.rangeQuery("totalSalesCount").gt(0));
+    }
+
+    sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
     pageable.getSort().stream()
         .forEach(
