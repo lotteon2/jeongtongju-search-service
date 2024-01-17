@@ -1,6 +1,7 @@
 package com.jeontongju.search.dto.response;
 
 import com.jeontongju.search.document.Product;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +27,13 @@ public class GetSellerOneProductDto {
 
   private Long shortsId;
 
+  private Long sellerId;
+
+  private String storeName;
+
   private Boolean isActivate;
+
+  private LocalDateTime createdAt;
 
   public static GetSellerOneProductDto toDto(Product product) {
     return GetSellerOneProductDto.builder()
@@ -37,7 +44,10 @@ public class GetSellerOneProductDto {
         .stockQuantity(product.getStockQuantity())
         .reviewCount(product.getReviewCount())
         .shortsId(product.getShortsId())
+        .sellerId(product.getSellerId())
+        .storeName(product.getStoreName())
         .isActivate(product.getIsActivate())
+        .createdAt(product.getCreatedAt())
         .build();
   }
 }

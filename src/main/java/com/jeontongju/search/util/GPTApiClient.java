@@ -35,7 +35,7 @@ public class GPTApiClient {
 
     return "Just choose only one of tags. "
         + "\n"
-        + "- Tags related to the concept are (CAMPING), (FISHING), (PARTY), (GATHERING), (YEAR_END), (HIKING), (OUTING), (TRIP), (GIFT), (MEETING_THE_FAMILY), (HOLIDAY), (ROOPTOP), (HEALING), (EMOTION), (HANGOVER_REMEDY). "
+        + "- Tags related to the concept are (CAMPING), (FISHING), (PARTY), (GATHERING), (YEAR_END), (HIKING), (OUTING), (TRIP), (GIFT), (MEETING_THE_FAMILY), (HOLIDAY), (ROOPTOP), (HEALING), (EMOTION), (HANGOVER_REMEDY) . "
             + "\n" +
             "- The format is (tag). " +
             "- Pick only one tag that is most relevant to the following sentence. " +
