@@ -12,7 +12,7 @@ public enum FoodTypeEnum {
   FINGER_FOOD("주전부리"),
   BEEF("소고기"),
   LAMB("양고기"),
-  PIG_HOCKS("족발/보쌈"),
+  PIG_HOCKS("족발"),
   BARBECUE("바베큐"),
   BOILED_CHICKEN("백숙"),
   CHICKEN("치킨"),
