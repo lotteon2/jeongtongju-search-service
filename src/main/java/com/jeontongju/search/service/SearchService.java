@@ -219,15 +219,15 @@ public class SearchService {
     filterByTerms(
         boolQuery,
         rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
-        "rawMaterial.text");
+        "rawMaterial");
 
     filterByTerms(
-        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
         boolQuery,
         concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept.text");
+        "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -271,15 +271,15 @@ public class SearchService {
     filterByTerms(
         boolQuery,
         rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
-        "rawMaterial.text");
+        "rawMaterial");
 
     filterByTerms(
-        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
         boolQuery,
         concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept.text");
+        "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -317,7 +317,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial.text")
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial")
             .field("name", 2);
 
     boolQuery.must(multiMatchQuery);
@@ -328,15 +328,15 @@ public class SearchService {
     filterByTerms(
         boolQuery,
         rawMaterial.stream().map(r -> r.getValue()).collect(Collectors.toList()),
-        "rawMaterial.text");
+        "rawMaterial");
 
     filterByTerms(
-        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food.text");
+        boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
         boolQuery,
         concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept.text");
+        "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -372,7 +372,7 @@ public class SearchService {
 
     if (!tagByGpt.isEmpty() ) {
       log.info("gpt result");
-      boolQuery.must(QueryBuilders.matchQuery("concept.text", tagByGpt));
+      boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
     }
 
     sourceBuilder.query(boolQuery);
@@ -424,7 +424,7 @@ public class SearchService {
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
-            .must(QueryBuilders.matchQuery("rawMaterial.text", rawMaterial))
+            .must(QueryBuilders.matchQuery("rawMaterial", rawMaterial))
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
@@ -479,7 +479,7 @@ public class SearchService {
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
-            .must(QueryBuilders.matchQuery("concept.text", "명절"))
+            .must(QueryBuilders.matchQuery("concept", "명절"))
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
