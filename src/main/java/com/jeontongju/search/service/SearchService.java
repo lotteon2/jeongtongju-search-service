@@ -8,6 +8,7 @@ import com.jeontongju.search.enums.temp.ConceptTypeEnum;
 import com.jeontongju.search.enums.temp.FoodTypeEnum;
 import com.jeontongju.search.enums.temp.RawMaterialEnum;
 import com.jeontongju.search.exception.ProductNotFoundException;
+import com.jeontongju.search.util.GPTApiClient;
 import io.github.bitbox.bitbox.dto.IsWishProductDto;
 import java.io.IOException;
 import java.util.*;
@@ -46,6 +47,7 @@ public class SearchService {
   private final RestHighLevelClient client;
   private final ObjectMapper objectMapper;
   private final WishCartServiceClient wishCartServiceClient;
+  private final GPTApiClient gptApiClient;
 
   public ProductDetailsDto getProductDetails(String productId, Long memberId) {
 
@@ -345,7 +347,35 @@ public class SearchService {
         getProductDtoList, pageable, searchResponse.getHits().getTotalHits().value);
   }
 
-  public List<GetProductAutoDto> getProductByAutoSearch(String query) {
+  public List<GetProductDto> recommendProduct(String query, Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    String tagByGpt = gptApiClient.getProductByGPTTest(query);
+
+    BoolQueryBuilder boolQuery =
+            QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchQuery("concept.text", tagByGpt))
+                    .filter(QueryBuilders.termQuery("isActivate", true))
+                    .filter(QueryBuilders.termQuery("isDeleted", false))
+                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.size(pageable.getPageSize());
+    pageable.getSort().stream()
+            .forEach(
+                    order ->
+                            sourceBuilder.sort(
+                                    SortBuilders.fieldSort(order.getProperty())
+                                            .order(SortOrder.fromString(order.getDirection().name()))));
+
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+
+    return getProductDtoList;
+  }
+
+    public List<GetProductAutoDto> getProductByAutoSearch(String query) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
