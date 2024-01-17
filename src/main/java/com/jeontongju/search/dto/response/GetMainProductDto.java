@@ -18,6 +18,7 @@ public class GetMainProductDto {
   private Long productPrice;
   private Long capacityToPriceRatio;
   private Long reviewCount;
+  private Long stockQuantity;
   private Long sellerId;
   private String storeName;
   private String storeImageUrl;
@@ -31,6 +32,7 @@ public class GetMainProductDto {
         .productPrice(product.getPrice())
         .capacityToPriceRatio(product.getCapacityToPriceRatio())
         .reviewCount(product.getReviewCount())
+        .stockQuantity(product.getStockQuantity())
         .sellerId(product.getSellerId())
         .storeName(product.getStoreName())
         .storeImageUrl(product.getStoreImageUrl())
