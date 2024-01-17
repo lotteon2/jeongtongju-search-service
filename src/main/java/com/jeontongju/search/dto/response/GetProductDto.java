@@ -18,6 +18,7 @@ public class GetProductDto {
   private String productThumbnailImageUrl;
   private Long productPrice;
   private Long reviewCount;
+  private Long stockQuantity;
   private Long capacityToPriceRatio;
   private Boolean isLikes;
   private Boolean isSoldOut;
@@ -30,6 +31,7 @@ public class GetProductDto {
         .productThumbnailImageUrl(product.getProductThumbnailImageUrl())
         .productPrice(product.getPrice())
         .reviewCount(product.getReviewCount())
+        .stockQuantity(product.getStockQuantity())
         .capacityToPriceRatio(product.getCapacityToPriceRatio())
         .isSoldOut(product.getStockQuantity() <= 0)
         .isLikes(isLikes != null ? isLikes : false)
