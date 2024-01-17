@@ -2,6 +2,7 @@ package com.jeontongju.search.dto.response;
 
 import com.jeontongju.search.document.Product;
 import com.jeontongju.search.document.Taste;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,8 @@ public class GetMyProductDto {
 
   private Boolean isActivate;
 
+  private LocalDateTime createdAt;
+
   public static GetMyProductDto toDto(Product product) {
 
     return GetMyProductDto.builder()
@@ -59,6 +62,7 @@ public class GetMyProductDto {
         .rawMaterial(product.getRawMaterial())
         .food(product.getFood())
         .isActivate(product.getIsActivate())
+        .createdAt(product.getCreatedAt())
         .build();
   }
 }
