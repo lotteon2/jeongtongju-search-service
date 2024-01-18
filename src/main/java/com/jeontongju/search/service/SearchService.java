@@ -411,7 +411,6 @@ public class SearchService {
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
     if (!tagByGpt.isEmpty()) {
-      log.info("gpt result");
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
     } else {
       sourceBuilder.sort(
