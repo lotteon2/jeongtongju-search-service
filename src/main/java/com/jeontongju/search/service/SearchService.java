@@ -369,12 +369,12 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 2)
-            .field("concept", 2)
-            .field("food", 2)
-            .field("rawMaterial.text", 2)
-            .field("concept.text", 2)
-            .field("food.text", 2)
+            .field("rawMaterial", 3)
+            .field("concept", 3)
+            .field("food", 3)
+            .field("rawMaterial.text", 3)
+            .field("concept.text", 3)
+            .field("food.text", 3)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
@@ -411,7 +411,6 @@ public class SearchService {
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
     if (!tagByGpt.isEmpty()) {
-      log.info("gpt result");
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
     } else {
       sourceBuilder.sort(
