@@ -14,7 +14,7 @@ public class GPTApiClient {
 
   private final ChatgptService chatgptService;
 
-  public String getProductByGPTTest(String query) {
+  public String getProductByGPT(String query) {
 
     String tag = "";
     try{

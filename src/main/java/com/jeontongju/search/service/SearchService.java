@@ -145,14 +145,14 @@ public class SearchService {
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .must(QueryBuilders.termQuery("sellerId", sellerId))
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false));
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.termQuery("sellerId", sellerId))
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false));
 
     if (pageable.getSort().iterator().next().getProperty().equals("reviewCount")) {
       boolQuery.filter(QueryBuilders.rangeQuery("reviewCount").gt(0));
-    } else if(pageable.getSort().iterator().next().getProperty().equals("totalSalesCount")) {
+    } else if (pageable.getSort().iterator().next().getProperty().equals("totalSalesCount")) {
       boolQuery.filter(QueryBuilders.rangeQuery("totalSalesCount").gt(0));
     }
 
@@ -225,9 +225,7 @@ public class SearchService {
         boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
-        boolQuery,
-        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept");
+        boolQuery, concept.stream().map(c -> c.getValue()).collect(Collectors.toList()), "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -277,9 +275,7 @@ public class SearchService {
         boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
-        boolQuery,
-        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept");
+        boolQuery, concept.stream().map(c -> c.getValue()).collect(Collectors.toList()), "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -317,8 +313,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial")
-            .field("name", 2);
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial").field("name", 2);
 
     boolQuery.must(multiMatchQuery);
 
@@ -334,9 +329,7 @@ public class SearchService {
         boolQuery, food.stream().map(f -> f.getValue()).collect(Collectors.toList()), "food");
 
     filterByTerms(
-        boolQuery,
-        concept.stream().map(c -> c.getValue()).collect(Collectors.toList()),
-        "concept");
+        boolQuery, concept.stream().map(c -> c.getValue()).collect(Collectors.toList()), "concept");
 
     filterByRange(boolQuery, minPrice, maxPrice, "price");
     filterByRange(boolQuery, minAlcoholDegree, maxAlcoholDegree, "alcoholDegree");
@@ -361,43 +354,87 @@ public class SearchService {
 
   public List<GetProductDto> recommendProduct(String query, Pageable pageable, Long consumerId) {
 
+    List<GetProductDto> getProductDtoList;
+
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    String tagByGpt = gptApiClient.getProductByGPTTest(query);
+
+    MultiMatchQueryBuilder multiMatchQuery =
+        QueryBuilders.multiMatchQuery(
+                query,
+                "name",
+                "description",
+                "rawMaterial",
+                "rawMaterial.text",
+                "concept",
+                "concept.text",
+                "food",
+                "food.text")
+            .field("rawMaterial", 2)
+            .field("concept", 2)
+            .field("food", 2)
+            .field("rawMaterial.text", 2)
+            .field("concept.text", 2)
+            .field("food.text", 2)
+            .field("name", 2)
+            .field("description")
+            .analyzer("product_custom_analyzer");
 
     BoolQueryBuilder boolQuery =
-            QueryBuilders.boolQuery()
-                    .filter(QueryBuilders.termQuery("isActivate", true))
-                    .filter(QueryBuilders.termQuery("isDeleted", false))
-                    .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+        QueryBuilders.boolQuery()
+            .must(multiMatchQuery)
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false))
+            .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
-    if (!tagByGpt.isEmpty() ) {
+    sourceBuilder.query(boolQuery);
+    sourceBuilder.size(pageable.getPageSize());
+
+    SearchResponse searchResponse = search(sourceBuilder);
+
+    if (searchResponse.getHits().getTotalHits().value != 0) {
+      getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
+    } else {
+      getProductDtoList = recommendProductGpt(query, pageable, consumerId);
+    }
+    return getProductDtoList;
+  }
+
+  public List<GetProductDto> recommendProductGpt(String query, Pageable pageable, Long consumerId) {
+
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    String tagByGpt = gptApiClient.getProductByGPT(query);
+
+    BoolQueryBuilder boolQuery =
+        QueryBuilders.boolQuery()
+            .filter(QueryBuilders.termQuery("isActivate", true))
+            .filter(QueryBuilders.termQuery("isDeleted", false))
+            .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+
+    if (!tagByGpt.isEmpty()) {
       log.info("gpt result");
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
+    } else {
+      sourceBuilder.sort(
+              SortBuilders.fieldSort("totalSalesCount")
+                      .order(SortOrder.fromString("desc")));
     }
 
     sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
-    pageable.getSort().stream()
-            .forEach(
-                    order ->
-                            sourceBuilder.sort(
-                                    SortBuilders.fieldSort(order.getProperty())
-                                            .order(SortOrder.fromString(order.getDirection().name()))));
 
     SearchResponse searchResponse = search(sourceBuilder);
-    List<GetProductDto> getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
 
-    return getProductDtoList;
+    return getProductListByIsWish(consumerId, searchResponse);
   }
 
-    public List<GetProductAutoDto> getProductByAutoSearch(String query) {
+  public List<GetProductAutoDto> getProductByAutoSearch(String query) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
     BoolQueryBuilder mustBoolQuery =
         QueryBuilders.boolQuery()
             .should(new MatchPhrasePrefixQueryBuilder("name", query))
-            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
+            .should(new MatchQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
