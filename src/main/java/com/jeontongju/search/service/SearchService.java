@@ -382,6 +382,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
             .must(multiMatchQuery)
+            .mustNot(QueryBuilders.matchQuery("name", "술"))
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
@@ -414,8 +415,7 @@ public class SearchService {
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
     } else {
       sourceBuilder.sort(
-              SortBuilders.fieldSort("totalSalesCount")
-                      .order(SortOrder.fromString("desc")));
+          SortBuilders.fieldSort("totalSalesCount").order(SortOrder.fromString("desc")));
     }
 
     sourceBuilder.query(boolQuery);
