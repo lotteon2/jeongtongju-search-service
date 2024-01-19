@@ -358,7 +358,7 @@ public class SearchService {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-    MultiMatchQueryBuilder multiMatchQuery =
+    MultiMatchQueryBuilder multiMatchMustQuery =
         QueryBuilders.multiMatchQuery(
                 query,
                 "name",
@@ -369,20 +369,29 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 3)
-            .field("concept", 3)
-            .field("food", 3)
-            .field("rawMaterial.text", 3)
-            .field("concept.text", 3)
-            .field("food.text", 3)
+            .field("rawMaterial", 10)
+            .field("concept", 10)
+            .field("food", 10)
+            .field("rawMaterial.text", 10)
+            .field("concept.text", 10)
+            .field("food.text", 10)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
 
+    MultiMatchQueryBuilder multiMatchMustNotQuery =
+            QueryBuilders.multiMatchQuery(
+                            query,
+                            "name",
+                            "description")
+                    .field("name")
+                    .field("description")
+                    .analyzer("product_custom_analyzer");
+
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
-            .must(multiMatchQuery)
-            .mustNot(QueryBuilders.matchQuery("name", "술"))
+            .must(multiMatchMustQuery)
+            .mustNot(multiMatchMustNotQuery)
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
