@@ -442,7 +442,7 @@ public class SearchService {
     BoolQueryBuilder mustBoolQuery =
         QueryBuilders.boolQuery()
             .should(new MatchPhrasePrefixQueryBuilder("name", query))
-            .should(new MatchQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
+            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
