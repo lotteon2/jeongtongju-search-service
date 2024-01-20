@@ -381,7 +381,7 @@ public class SearchService {
 
     MultiMatchQueryBuilder multiMatchMustNotQuery =
             QueryBuilders.multiMatchQuery(
-                            query,
+                            "술",
                             "name",
                             "description")
                     .field("name")
