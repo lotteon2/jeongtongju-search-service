@@ -313,7 +313,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial").field("name", 2);
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial", "rawMaterial.text").field("name", 2);
 
     boolQuery.must(multiMatchQuery);
 
