@@ -16,8 +16,8 @@ public enum FoodTypeEnum {
   BARBECUE("바베큐"),
   BOILED_CHICKEN("백숙"),
   CHICKEN("치킨"),
-  RAW_FISH("생선회"),
-  GRILLED_SEAFOOD("해산물 구이"),
+  RAW_FISH("생선"),
+  GRILLED_SEAFOOD("해산물"),
   WHITE_SOUP("백탕"),
   RED_SOUP("홍탕");
 
