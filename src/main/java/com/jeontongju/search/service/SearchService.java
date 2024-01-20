@@ -369,19 +369,19 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 10)
-            .field("concept", 10)
-            .field("food", 10)
-            .field("rawMaterial.text", 10)
-            .field("concept.text", 10)
-            .field("food.text", 10)
+            .field("rawMaterial", 4)
+            .field("concept", 4)
+            .field("food", 4)
+            .field("rawMaterial.text", 4)
+            .field("concept.text", 4)
+            .field("food.text", 4)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
 
     MultiMatchQueryBuilder multiMatchMustNotQuery =
             QueryBuilders.multiMatchQuery(
-                            query,
+                            "술",
                             "name",
                             "description")
                     .field("name")
