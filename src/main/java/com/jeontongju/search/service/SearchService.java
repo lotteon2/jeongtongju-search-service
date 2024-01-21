@@ -369,12 +369,12 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 5)
-            .field("concept", 5)
-            .field("food", 5)
-            .field("rawMaterial.text", 5)
-            .field("concept.text", 5)
-            .field("food.text", 5)
+            .field("rawMaterial", 7)
+            .field("concept", 7)
+            .field("food", 7)
+            .field("rawMaterial.text", 7)
+            .field("concept.text", 7)
+            .field("food.text", 7)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
