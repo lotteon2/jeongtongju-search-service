@@ -313,7 +313,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial", "rawMaterial.text").field("name", 2);
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial", "rawMaterial.text").field("name", 3);
 
     boolQuery.must(multiMatchQuery);
 
@@ -369,12 +369,12 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 4)
-            .field("concept", 4)
-            .field("food", 4)
-            .field("rawMaterial.text", 4)
-            .field("concept.text", 4)
-            .field("food.text", 4)
+            .field("rawMaterial", 5)
+            .field("concept", 5)
+            .field("food", 5)
+            .field("rawMaterial.text", 5)
+            .field("concept.text", 5)
+            .field("food.text", 5)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
