@@ -3,6 +3,7 @@ package com.jeontongju.search.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
+import com.jeontongju.search.dto.PriceAlcoholDto;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.enums.temp.ConceptTypeEnum;
 import com.jeontongju.search.enums.temp.FoodTypeEnum;
@@ -313,7 +314,7 @@ public class SearchService {
     BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
     MultiMatchQueryBuilder multiMatchQuery =
-        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial").field("name", 2);
+        QueryBuilders.multiMatchQuery(query, "name", "description", "rawMaterial", "rawMaterial.text").field("name", 3);
 
     boolQuery.must(multiMatchQuery);
 
@@ -358,7 +359,7 @@ public class SearchService {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-    MultiMatchQueryBuilder multiMatchQuery =
+    MultiMatchQueryBuilder multiMatchMustQuery =
         QueryBuilders.multiMatchQuery(
                 query,
                 "name",
@@ -369,22 +370,35 @@ public class SearchService {
                 "concept.text",
                 "food",
                 "food.text")
-            .field("rawMaterial", 2)
-            .field("concept", 2)
-            .field("food", 2)
-            .field("rawMaterial.text", 2)
-            .field("concept.text", 2)
-            .field("food.text", 2)
+            .field("rawMaterial", 7)
+            .field("concept", 7)
+            .field("food", 7)
+            .field("rawMaterial.text", 7)
+            .field("concept.text", 7)
+            .field("food.text", 7)
             .field("name", 2)
             .field("description")
             .analyzer("product_custom_analyzer");
 
+    MultiMatchQueryBuilder multiMatchMustNotQuery =
+            QueryBuilders.multiMatchQuery(
+                            "술",
+                            "name",
+                            "description")
+                    .field("name")
+                    .field("description")
+                    .analyzer("product_custom_analyzer");
+
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
-            .must(multiMatchQuery)
+            .must(multiMatchMustQuery)
+            .mustNot(multiMatchMustNotQuery)
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+
+    PriceAlcoholDto priceAlcoholDto = gptApiClient.getProductFilteringByGPT(query);
+    filteringBoolQueryByGpt(boolQuery, priceAlcoholDto);
 
     sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
@@ -394,15 +408,15 @@ public class SearchService {
     if (searchResponse.getHits().getTotalHits().value != 0) {
       getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
     } else {
-      getProductDtoList = recommendProductGpt(query, pageable, consumerId);
+      getProductDtoList = recommendProductGpt(query, pageable, consumerId, priceAlcoholDto);
     }
     return getProductDtoList;
   }
 
-  public List<GetProductDto> recommendProductGpt(String query, Pageable pageable, Long consumerId) {
+  public List<GetProductDto> recommendProductGpt(String query, Pageable pageable, Long consumerId, PriceAlcoholDto priceAlcoholDto) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    String tagByGpt = gptApiClient.getProductByGPT(query);
+    String tagByGpt = gptApiClient.getProductConceptByGPT(query);
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
@@ -410,13 +424,13 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
+    filteringBoolQueryByGpt(boolQuery, priceAlcoholDto);
+
     if (!tagByGpt.isEmpty()) {
-      log.info("gpt result");
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
     } else {
       sourceBuilder.sort(
-              SortBuilders.fieldSort("totalSalesCount")
-                      .order(SortOrder.fromString("desc")));
+          SortBuilders.fieldSort("totalSalesCount").order(SortOrder.fromString("desc")));
     }
 
     sourceBuilder.query(boolQuery);
@@ -427,6 +441,15 @@ public class SearchService {
     return getProductListByIsWish(consumerId, searchResponse);
   }
 
+  public void filteringBoolQueryByGpt(BoolQueryBuilder boolQuery, PriceAlcoholDto priceAlcoholDto) {
+    if (priceAlcoholDto.getMaxAlcohol() != null && priceAlcoholDto.getMinAlcohol() != null) {
+      filterByRange(boolQuery,priceAlcoholDto.getMinAlcohol(), priceAlcoholDto.getMaxAlcohol(), "alcoholDegree");
+    }
+    if (priceAlcoholDto.getMaxPrice() != null && priceAlcoholDto.getMinPrice() != null) {
+      filterByRange(boolQuery,priceAlcoholDto.getMinPrice(), priceAlcoholDto.getMaxPrice(), "price");
+    }
+  }
+
   public List<GetProductAutoDto> getProductByAutoSearch(String query) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -434,7 +457,7 @@ public class SearchService {
     BoolQueryBuilder mustBoolQuery =
         QueryBuilders.boolQuery()
             .should(new MatchPhrasePrefixQueryBuilder("name", query))
-            .should(new MatchQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
+            .should(new FuzzyQueryBuilder("name", query).fuzziness(Fuzziness.ONE));
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
