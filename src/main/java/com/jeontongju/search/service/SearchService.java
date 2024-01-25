@@ -3,6 +3,7 @@ package com.jeontongju.search.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeontongju.search.client.WishCartServiceClient;
 import com.jeontongju.search.document.Product;
+import com.jeontongju.search.dto.PriceAlcoholDto;
 import com.jeontongju.search.dto.response.*;
 import com.jeontongju.search.enums.temp.ConceptTypeEnum;
 import com.jeontongju.search.enums.temp.FoodTypeEnum;
@@ -396,6 +397,9 @@ public class SearchService {
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
 
+    PriceAlcoholDto priceAlcoholDto = gptApiClient.getProductFilteringByGPT(query);
+    filteringBoolQueryByGpt(boolQuery, priceAlcoholDto);
+
     sourceBuilder.query(boolQuery);
     sourceBuilder.size(pageable.getPageSize());
 
@@ -404,21 +408,23 @@ public class SearchService {
     if (searchResponse.getHits().getTotalHits().value != 0) {
       getProductDtoList = getProductListByIsWish(consumerId, searchResponse);
     } else {
-      getProductDtoList = recommendProductGpt(query, pageable, consumerId);
+      getProductDtoList = recommendProductGpt(query, pageable, consumerId, priceAlcoholDto);
     }
     return getProductDtoList;
   }
 
-  public List<GetProductDto> recommendProductGpt(String query, Pageable pageable, Long consumerId) {
+  public List<GetProductDto> recommendProductGpt(String query, Pageable pageable, Long consumerId, PriceAlcoholDto priceAlcoholDto) {
 
     SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    String tagByGpt = gptApiClient.getProductByGPT(query);
+    String tagByGpt = gptApiClient.getProductConceptByGPT(query);
 
     BoolQueryBuilder boolQuery =
         QueryBuilders.boolQuery()
             .filter(QueryBuilders.termQuery("isActivate", true))
             .filter(QueryBuilders.termQuery("isDeleted", false))
             .filter(QueryBuilders.rangeQuery("stockQuantity").gt(0));
+
+    filteringBoolQueryByGpt(boolQuery, priceAlcoholDto);
 
     if (!tagByGpt.isEmpty()) {
       boolQuery.must(QueryBuilders.matchQuery("concept", tagByGpt));
@@ -433,6 +439,15 @@ public class SearchService {
     SearchResponse searchResponse = search(sourceBuilder);
 
     return getProductListByIsWish(consumerId, searchResponse);
+  }
+
+  public void filteringBoolQueryByGpt(BoolQueryBuilder boolQuery, PriceAlcoholDto priceAlcoholDto) {
+    if (priceAlcoholDto.getMaxAlcohol() != null && priceAlcoholDto.getMinAlcohol() != null) {
+      filterByRange(boolQuery,priceAlcoholDto.getMinAlcohol(), priceAlcoholDto.getMaxAlcohol(), "alcoholDegree");
+    }
+    if (priceAlcoholDto.getMaxPrice() != null && priceAlcoholDto.getMinPrice() != null) {
+      filterByRange(boolQuery,priceAlcoholDto.getMinPrice(), priceAlcoholDto.getMaxPrice(), "price");
+    }
   }
 
   public List<GetProductAutoDto> getProductByAutoSearch(String query) {
